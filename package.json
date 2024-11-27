@@ -1,0 +1,25 @@
+{
+  "name": "gauges",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000m\u0000o\u0000c\u0000-\u0000g\u0000a\u0000u\u0000g\u0000e\u0000s\u0000\r\u0000 \u0000",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MathiasChristiansen/moc-gauges.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MathiasChristiansen/moc-gauges/issues"
+  },
+  "homepage": "https://github.com/MathiasChristiansen/moc-gauges#readme",
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}

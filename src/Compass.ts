@@ -5,9 +5,8 @@ interface CompassOptions extends GaugeOptions {
   textColor?: string;
   borderColor?: string;
   easingFactor?: number;
-  autoRender?: boolean;
-  fontSize?: number;
   backgroundColor?: string;
+  fontSize?: number;
 }
 
 export class CompassGauge extends GaugeBase {
@@ -15,26 +14,24 @@ export class CompassGauge extends GaugeBase {
 
   constructor(parentElement: HTMLElement, options: CompassOptions = {}) {
     super(parentElement, {
-      needleColor: "#ff0000",
-      textColor: "#000000",
-      borderColor: "#000000",
-      fontSize: 16,
       ...options,
     });
+
+    // Merge specific options
     this.options = {
       needleColor: "#ff0000",
       textColor: "#000000",
-      easingFactor: 0.1,
       borderColor: "#000000",
-      autoRender: false,
+      easingFactor: 0.1,
+      autoRender: true,
       backgroundColor: "#ffffff",
       fontSize: 16,
       ...options,
     };
 
     // Initialize animation state
-    this.animationState = { heading: 0 };
-    this.actualState = { heading: 0 };
+    this.animationState = { heading: 0 }; // Animated state for rendering
+    this.actualState = { heading: 0 }; // Target state
   }
 
   protected render(): void {
@@ -94,5 +91,25 @@ export class CompassGauge extends GaugeBase {
     this.ctx.arc(cx, cy, 5, 0, 2 * Math.PI);
     this.ctx.fillStyle = needleColor;
     this.ctx.fill();
+  }
+
+  // Overwrite the updateAnimationState to handle compass-specific behavior
+  protected updateAnimationState(): void {
+    const easingFactor = this.options.easingFactor;
+    const actualHeading = this.actualState.heading;
+    const animatedHeading = this.animationState.heading || 0;
+
+    // Calculate shortest angular difference
+    let difference = actualHeading - animatedHeading;
+
+    // Wrap difference to the range [-180, 180]
+    if (difference > 180) {
+      difference -= 360;
+    } else if (difference < -180) {
+      difference += 360;
+    }
+
+    // Smoothly update animation state
+    this.animationState.heading = animatedHeading + difference * easingFactor;
   }
 }

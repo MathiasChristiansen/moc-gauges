@@ -94,7 +94,7 @@ export abstract class GaugeBase {
     });
   }
 
-  private updateAnimationState(): void {
+  protected updateAnimationState(): void {
     const easingFactor = this.options.easingFactor;
 
     for (const key in this.actualState) {

@@ -23,7 +23,7 @@ export class CompassGauge extends GaugeBase {
       textColor: "#000000",
       borderColor: "#000000",
       easingFactor: 0.1,
-      autoRender: true,
+      autoRender: false,
       backgroundColor: "#ffffff",
       fontSize: 16,
       ...options,

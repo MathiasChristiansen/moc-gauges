@@ -70,12 +70,7 @@ export abstract class GaugeBase {
     const { backgroundColor } = this.options;
     const { width, height } = this.canvas;
     this.ctx.fillStyle = backgroundColor;
-    this.ctx.fillRect(
-      0,
-      0,
-      width / window.devicePixelRatio,
-      height / window.devicePixelRatio
-    );
+    this.ctx.clearRect(0, 0, width, height);
   }
 
   public setData(data: any): void {

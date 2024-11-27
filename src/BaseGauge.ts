@@ -1,13 +1,20 @@
-interface GaugeOptions {
+export interface GaugeOptions {
   backgroundColor?: string;
+  autoRender?: boolean;
+  easingFactor?: number;
 }
 
-abstract class GaugeBase {
+export abstract class GaugeBase {
   protected canvas: HTMLCanvasElement;
   protected ctx: CanvasRenderingContext2D;
   protected options: Required<GaugeOptions>;
   protected parentElement: HTMLElement;
   protected data: any;
+
+  protected actualState: any = {};
+  protected animationState: any = {};
+
+  private animationFrameId: number | null = null;
 
   constructor(parentElement: HTMLElement, options: GaugeOptions = {}) {
     this.parentElement = parentElement;
@@ -24,7 +31,9 @@ abstract class GaugeBase {
 
     // Merge default options with user-provided ones
     this.options = {
-      backgroundColor: "#ffffff",
+      backgroundColor: "rgba(0, 0, 0, 0)",
+      autoRender: false,
+      easingFactor: 0.1,
       ...options,
     };
 
@@ -32,11 +41,11 @@ abstract class GaugeBase {
     this.resizeCanvas();
     window.addEventListener("resize", this.resizeCanvas.bind(this));
 
-    // Placeholder for current data
-    this.data = null;
-
     // Initialize rendering
     this.init();
+    if (this.options.autoRender) {
+      this.animate();
+    }
   }
 
   protected init(): void {
@@ -70,7 +79,37 @@ abstract class GaugeBase {
   }
 
   public setData(data: any): void {
-    this.data = data;
+    this.actualState = { ...this.actualState, ...data };
+
+    if (this.options.autoRender) {
+      this.update();
+    }
+  }
+
+  private animate(): void {
+    this.animationFrameId = requestAnimationFrame(() => {
+      this.updateAnimationState();
+      this.render();
+      this.animate();
+    });
+  }
+
+  private updateAnimationState(): void {
+    const easingFactor = this.options.easingFactor;
+
+    for (const key in this.actualState) {
+      if (this.actualState.hasOwnProperty(key)) {
+        const actualValue = this.actualState[key];
+        const animationValue = this.animationState[key] || 0;
+
+        const difference = actualValue - animationValue;
+        this.animationState[key] = animationValue + difference * easingFactor;
+      }
+    }
+  }
+
+  public update(): void {
+    this.updateAnimationState();
     this.render();
   }
 
@@ -78,6 +117,9 @@ abstract class GaugeBase {
 
   public destroy(): void {
     window.removeEventListener("resize", this.resizeCanvas.bind(this));
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
     this.parentElement.removeChild(this.canvas);
   }
 }

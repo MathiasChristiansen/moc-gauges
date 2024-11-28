@@ -2,7 +2,15 @@ export interface GaugeOptions {
   backgroundColor?: string;
   autoRender?: boolean;
   easingFactor?: number;
+  skin?: string;
 }
+
+export type SkinRenderFunction<TOptions> = (
+  ctx: CanvasRenderingContext2D,
+  options: Required<TOptions>,
+  state: any,
+  parentElement: HTMLElement
+) => void;
 
 export abstract class GaugeBase {
   protected canvas: HTMLCanvasElement;
@@ -15,6 +23,9 @@ export abstract class GaugeBase {
   protected animationState: any = {};
 
   private animationFrameId: number | null = null;
+
+  private static skins: Record<string, SkinRenderFunction<any>> = {};
+  private renderFunction: SkinRenderFunction<any>;
 
   constructor(parentElement: HTMLElement, options: GaugeOptions = {}) {
     this.parentElement = parentElement;
@@ -34,6 +45,7 @@ export abstract class GaugeBase {
       backgroundColor: "rgba(0, 0, 0, 0)",
       autoRender: false,
       easingFactor: 0.1,
+      skin: "default",
       ...options,
     };
 
@@ -43,6 +55,10 @@ export abstract class GaugeBase {
 
     // Initialize rendering
     this.init();
+
+    this.renderFunction =
+      GaugeBase.skins[this.options.skin] ?? this.defaultRender;
+
     if (this.options.autoRender) {
       this.animate();
     }
@@ -108,7 +124,38 @@ export abstract class GaugeBase {
     this.render();
   }
 
-  protected abstract render(): void;
+  protected render(): void {
+    this.renderFunction(
+      this.ctx,
+      this.options,
+      this.animationState,
+      this.parentElement
+    );
+  }
+
+  protected abstract defaultRender(
+    ctx: CanvasRenderingContext2D,
+    options: Required<GaugeOptions>,
+    state: any,
+    parentElement: HTMLElement
+  ): void;
+
+  public static registerSkin<TOptions>(
+    name: string,
+    renderFunction: SkinRenderFunction<TOptions>
+  ): void {
+    GaugeBase.skins[name] = renderFunction as SkinRenderFunction<any>;
+  }
+
+  public setSkin(skin: string): void {
+    const newRenderFunction = GaugeBase.skins[skin];
+
+    if (!newRenderFunction) {
+      throw new Error(`Skin not found: ${skin}`);
+    }
+
+    this.renderFunction = newRenderFunction ?? this.defaultRender;
+  }
 
   public destroy(): void {
     window.removeEventListener("resize", this.resizeCanvas.bind(this));

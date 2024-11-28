@@ -6,6 +6,7 @@ export interface SpeedometerOptions extends GaugeOptions {
   easingFactor?: number;
   needleColor?: string;
   unit?: string;
+  skin?: string;
   decimals?: number;
   backgroundColor?: string;
 }
@@ -28,6 +29,7 @@ export class SpeedometerGauge extends GaugeBase {
       needleColor: "#ff0000",
       backgroundColor: "#ffffff",
       unit: "%",
+      skin: "default",
       decimals: 2,
       autoRender: false,
       ...options,
@@ -37,8 +39,13 @@ export class SpeedometerGauge extends GaugeBase {
     this.actualState = { value: 0 };
   }
 
-  protected render(): void {
-    const rect = this.parentElement.getBoundingClientRect();
+  protected defaultRender(
+    ctx: CanvasRenderingContext2D,
+    options: Required<SpeedometerOptions>,
+    state: any,
+    parentElement: HTMLElement
+  ): void {
+    const rect = parentElement.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
 
@@ -46,22 +53,20 @@ export class SpeedometerGauge extends GaugeBase {
 
     const { value } = this.animationState;
 
-    this.clear();
-
-    const aspectRatio = width / height;
+    ctx.clearRect(0, 0, width, height);
 
     // Draw the speedometer arc
-    this.ctx.beginPath();
-    this.ctx.arc(
+    ctx.beginPath();
+    ctx.arc(
       width / 2,
       height / 2,
       Math.min(width, height) / 3,
       Math.PI,
       2 * Math.PI
     );
-    this.ctx.strokeStyle = "#000";
-    this.ctx.lineWidth = 5;
-    this.ctx.stroke();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 5;
+    ctx.stroke();
 
     // Draw the needle
     const angle = Math.PI + ((value - min) / (max - min)) * Math.PI;
@@ -69,36 +74,141 @@ export class SpeedometerGauge extends GaugeBase {
     const x = width / 2 + needleLength * Math.cos(angle);
     const y = height / 2 + needleLength * Math.sin(angle);
 
-    this.ctx.beginPath();
-    this.ctx.moveTo(width / 2, height / 2);
-    this.ctx.lineTo(x, y);
-    this.ctx.strokeStyle = needleColor;
-    this.ctx.lineWidth = 2;
-    this.ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(width / 2, height / 2);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = needleColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
     // Draw the needle cap
-    this.ctx.beginPath();
-    this.ctx.arc(width / 2, height / 2, 5, 0, 2 * Math.PI);
-    this.ctx.fillStyle = needleColor;
-    this.ctx.fill();
+    ctx.beginPath();
+    ctx.arc(width / 2, height / 2, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = needleColor;
+    ctx.fill();
 
     // Draw the speedometer value
-    this.ctx.font = "20px Arial";
-    this.ctx.fillStyle = "#000";
-    this.ctx.textAlign = "center";
-    this.ctx.textBaseline = "middle";
-    this.ctx.fillText(
-      `${value.toFixed(this.options.decimals)}${this.options.unit}`,
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "#000";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(
+      `${value.toFixed(options.decimals)}${options.unit}`,
       width / 2,
       height / 2 + 25
     );
 
     // Draw the speedometer min/max values
-    this.ctx.font = "10px Arial";
-    this.ctx.fillStyle = "#000";
-    this.ctx.textAlign = "center";
-    this.ctx.textBaseline = "middle";
-    this.ctx.fillText(`${min}`, width / 2 - needleLength, height / 2 + 10);
-    this.ctx.fillText(`${max}`, width / 2 + needleLength, height / 2 + 10);
+    ctx.font = "10px Arial";
+    ctx.fillStyle = "#000";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${min}`, width / 2 - needleLength, height / 2 + 10);
+    ctx.fillText(`${max}`, width / 2 + needleLength, height / 2 + 10);
   }
 }
+
+SpeedometerGauge.registerSkin<SpeedometerOptions>(
+  "futuristic",
+  (ctx, options, state, parentElement) => {
+    const rect = parentElement.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+
+    const { min, max, needleColor, decimals, unit } = options;
+    const { value } = state;
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw gradient background
+    const gradient = ctx.createRadialGradient(
+      width / 2,
+      height / 2,
+      10,
+      width / 2,
+      height / 2,
+      width / 2
+    );
+    gradient.addColorStop(0, "#001f3f");
+    gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = "rgba(100, 100, 100, 0.5)";
+
+    // Grey arc background
+    ctx.beginPath();
+    ctx.arc(
+      width / 2,
+      (height * 2.5) / 4,
+      Math.min(width, height) / 3,
+      Math.PI,
+      2 * Math.PI
+    );
+
+    ctx.strokeStyle = "rgba(100, 100, 100, 0.25)";
+    ctx.lineWidth = 16;
+    ctx.stroke();
+
+    // Draw glowing speedometer arc
+    ctx.beginPath();
+    ctx.arc(
+      width / 2,
+      (height * 2.5) / 4,
+      Math.min(width, height) / 3,
+      Math.PI,
+      Math.PI + ((value - min) / (max - min)) * Math.PI
+    );
+
+    // Draw the needle
+    // const angle = Math.PI + ((value - min) / (max - min)) * Math.PI;
+    const needleLength = Math.min(width, height) / 3;
+    // const x = width / 2 + needleLength * Math.cos(angle);
+    // const y = height / 2 + needleLength * Math.sin(angle);
+
+    const color = `rgba(${(1 - value / max) * 255}, ${
+      (value / max) * 255
+    }, 0, 1)`;
+
+    ctx.strokeStyle = color; // Glow color
+    ctx.lineWidth = 16;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 20;
+    ctx.stroke();
+    ctx.shadowBlur = 0; // Reset shadow
+
+    // ctx.beginPath();
+    // ctx.moveTo(width / 2, height / 2);
+    // ctx.lineTo(x, y);
+    // ctx.strokeStyle = needleColor;
+    // ctx.lineWidth = 4;
+    // ctx.stroke();
+
+    // Draw needle cap with glow
+    // ctx.beginPath();
+    // ctx.arc(width / 2, height / 2, 7, 0, 2 * Math.PI);
+    // ctx.fillStyle = needleColor;
+    // ctx.shadowColor = needleColor;
+    // ctx.shadowBlur = 10;
+    // ctx.fill();
+    // ctx.shadowBlur = 0;
+
+    // Draw the speedometer value
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(
+      `${value.toFixed(decimals)}${unit}`,
+      width / 2,
+      (height * 2.5) / 4 - 16
+    );
+
+    // Draw min and max values
+    ctx.font = "12px Arial";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(`${min}`, width / 2 - needleLength, (height * 2.5) / 4 + 20);
+    ctx.fillText(`${max}`, width / 2 + needleLength, (height * 2.5) / 4 + 20);
+  }
+);

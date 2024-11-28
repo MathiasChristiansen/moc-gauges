@@ -5,6 +5,8 @@ export interface SpeedometerOptions extends GaugeOptions {
   max?: number;
   easingFactor?: number;
   needleColor?: string;
+  unit?: string;
+  decimals?: number;
   backgroundColor?: string;
 }
 
@@ -25,6 +27,8 @@ export class SpeedometerGauge extends GaugeBase {
       easingFactor: 0.1,
       needleColor: "#ff0000",
       backgroundColor: "#ffffff",
+      unit: "%",
+      decimals: 2,
       autoRender: false,
       ...options,
     };
@@ -84,7 +88,7 @@ export class SpeedometerGauge extends GaugeBase {
     this.ctx.textAlign = "center";
     this.ctx.textBaseline = "middle";
     this.ctx.fillText(
-      `${value.toFixed(2)}`,
+      `${value.toFixed(this.options.decimals)}${this.options.unit}`,
       width / 2,
       height / 2 + 25
     );

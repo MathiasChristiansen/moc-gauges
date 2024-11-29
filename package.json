@@ -1,6 +1,6 @@
 {
-  "name": "gauges",
-  "version": "1.0.0",
+  "name": "moc-gauges",
+  "version": "1.0.1",
   "description": "moc-gauges - A modular gauge library for vanilla JavaScript and TypeScript, browser projects.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

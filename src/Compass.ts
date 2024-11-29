@@ -566,7 +566,7 @@ CompassGauge.registerSkin<CompassOptions>(
     ctx.fill();
 
     // Draw the current heading in the bottom-right corner
-    ctx.font = `${fontSize || barHeight * 0.15}px Arial`;
+    ctx.font = `${barHeight * 0.1}px Arial`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
     ctx.textAlign = "right";
     ctx.fillText(

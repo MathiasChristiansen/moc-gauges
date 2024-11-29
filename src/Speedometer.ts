@@ -374,7 +374,7 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     // Draw speedometer value and unit
     ctx.font = `${radius * 0.12}px Arial`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-    ctx.fillText(`${unit}`, cx, cy + radius * 0.85);
+    ctx.fillText(`${unit}`, cx, cy + radius * 0.75);
 
     ctx.font = `${radius * 0.2}px Arial`;
     ctx.fillStyle = "#ffffff";
@@ -553,6 +553,59 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     //   isVertical ? barLength : barThickness
     // );
 
+    // Ticks
+    const tickSpacing = Math.max(barLength / 10, 20); // Ensure a sensible tick spacing
+    const tickCount = Math.floor(barLength / tickSpacing);
+    const tickStep = (max - min) / tickCount;
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+
+    for (let i = 0; i <= tickCount; i++) {
+      const tickValue = min + i * tickStep;
+      const tickFraction = (tickValue - min) / (max - min);
+      const tickPosition = tickFraction * barLength;
+
+      if (isVertical) {
+        const y = barY + barLength - tickPosition;
+
+        // Draw tick
+        ctx.beginPath();
+        ctx.moveTo(barX + barThickness * (i % 2 ? 0.75 : 0.8), y); // Tick extends outside the bar
+        ctx.lineTo(barThickness, y);
+        ctx.stroke();
+
+        // Draw tick label
+        ctx.font = `${Math.min(width, height) * 0.05}px Arial`;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillText(
+          tickValue.toFixed(0),
+          barThickness * 0.98,
+          y - height * 0.025
+        );
+      } else {
+        const x = barX + tickPosition;
+
+        // Draw tick
+        ctx.beginPath();
+        ctx.moveTo(x, height); // Tick extends below the bar
+        ctx.lineTo(x, height * (i % 2 ? 0.7 : 0.75));
+        ctx.stroke();
+
+        // Draw tick label
+        ctx.font = `${Math.min(width, height) * 0.05}px Arial`;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(
+          tickValue.toFixed(0),
+          x + barLength * 0.025,
+          height * 0.95
+        );
+      }
+    }
+
     // Draw value text
     ctx.font = `${Math.min(width, height) * 0.2}px Arial`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
@@ -562,7 +615,7 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     ctx.shadowBlur = 5;
     const valueText = `${value.toFixed(decimals)} ${unit}`;
     if (isVertical) {
-      ctx.fillText(valueText, width / 2, barY + barLength + padding);
+      ctx.fillText(valueText, width / 2, height / 2);
     } else {
       ctx.fillText(valueText, barX + barLength / 2, height / 2);
 
@@ -573,5 +626,7 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
       // ctx.textAlign = "right";
       // ctx.fillText(`${max}`, barX + barLength, barY + barThickness + padding);
     }
+
+    ctx.shadowBlur = 0;
   }
 );

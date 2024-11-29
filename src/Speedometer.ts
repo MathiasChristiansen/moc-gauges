@@ -598,11 +598,7 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
         ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillText(
-          tickValue.toFixed(0),
-          x + barLength * 0.025,
-          height * 0.95
-        );
+        ctx.fillText(tickValue.toFixed(0), x + 16, height * 0.95);
       }
     }
 

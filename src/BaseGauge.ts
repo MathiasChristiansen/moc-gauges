@@ -89,6 +89,10 @@ export abstract class GaugeBase {
     this.ctx.clearRect(0, 0, width, height);
   }
 
+  public setOptions(options: GaugeOptions): void {
+    this.options = { ...this.options, ...options };
+  }
+
   public setData(data: any): void {
     this.actualState = { ...this.actualState, ...data };
 

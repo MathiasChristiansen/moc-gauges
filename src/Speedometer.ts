@@ -8,6 +8,7 @@ export interface SpeedometerOptions extends GaugeOptions {
   unit?: string;
   skin?: string;
   vertical?: boolean;
+  invertColors?: boolean;
   decimals?: number;
   backgroundColor?: string;
 }
@@ -32,6 +33,7 @@ export class SpeedometerGauge extends GaugeBase {
       unit: "%",
       skin: "default",
       vertical: false,
+      invertColors: false,
       decimals: 2,
       autoRender: false,
       ...options,
@@ -333,9 +335,13 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
 
     ctx.beginPath();
     ctx.arc(cx, cy, outerRadius - arcThckness / 2, startAngle, valueAngle);
-    const color = `rgba(${(1 - value / max) * 255}, ${
-      (value / max) * 255
-    }, 0, 1)`;
+    let color = "";
+    if (options.invertColors) {
+      color = `rgba(${(value / max) * 255}, ${(1 - value / max) * 255}, 0, 1)`;
+    } else {
+      color = `rgba(${(1 - value / max) * 255}, ${(value / max) * 255}, 0, 1)`;
+    }
+
     ctx.strokeStyle = color;
     ctx.lineWidth = arcThckness;
     ctx.shadowColor = color;
@@ -393,37 +399,47 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     const cy = height / 2;
 
     // Define LED display area
-    const ledWidth = width * 0.8;
-    const ledHeight = height * 0.4;
+    const ledWidth = width;
+    const ledHeight = height;
     const ledX = (width - ledWidth) / 2;
     const ledY = (height - ledHeight) / 2;
 
+    const backgroundCradient = ctx.createLinearGradient(0, 0, width, height);
+    backgroundCradient.addColorStop(0, "#001f3f");
+    backgroundCradient.addColorStop(1, "rgba(0, 0, 0, 1)");
+
     // Draw LED background
-    ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+    ctx.fillStyle = backgroundCradient;
     ctx.fillRect(ledX, ledY, ledWidth, ledHeight);
 
-    const detailColor = "rgba(0, 128, 255, 0.8)";
+    // const detailColor = "rgba(100, 128, 205, 0.5)";
 
     // Draw glowing border
-    ctx.strokeStyle = detailColor;
-    ctx.lineWidth = Math.min(ledWidth, ledHeight) * 0.03;
-    ctx.shadowColor = detailColor;
-    ctx.shadowBlur = 15;
-    ctx.strokeRect(ledX, ledY, ledWidth, ledHeight);
-    ctx.shadowBlur = 0;
+    // ctx.strokeStyle = detailColor;
+    // ctx.lineWidth = Math.min(ledWidth, ledHeight) * 0.03;
+    // ctx.shadowColor = detailColor;
+    // ctx.shadowBlur = 15;
+    // ctx.strokeRect(ledX, ledY, ledWidth, ledHeight);
+    // ctx.shadowBlur = 0;
 
     // Configure LED-style number display
-    ctx.font = `bold ${ledHeight * 0.4}px 'Courier New', monospace`;
+    ctx.font = `bold ${ledHeight * 0.25}px 'Courier New', monospace`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
     // Dynamic color for value based on proportion (red to green gradient)
-    const color = `rgba(${(1 - value / max) * 255}, ${
-      (value / max) * 255
-    }, 50, 1)`;
+    // const color = `rgba(${(1 - value / max) * 255}, ${
+    //   (value / max) * 255
+    // }, 50, 1)`;
+    let color = "";
+    if (options.invertColors) {
+      color = `rgba(${(value / max) * 255}, ${(1 - value / max) * 255}, 0, 1)`;
+    } else {
+      color = `rgba(${(1 - value / max) * 255}, ${(value / max) * 255}, 0, 1)`;
+    }
     ctx.fillStyle = color;
     ctx.shadowColor = color;
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 4;
 
     // Draw the value
     ctx.fillText(value.toFixed(decimals), cx, cy);
@@ -431,13 +447,9 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     // Reset shadow
     ctx.shadowBlur = 0;
 
-    // Draw unit below the number
-    ctx.font = `bold ${ledHeight * 0.15}px 'Courier New', monospace`;
-    ctx.fillStyle = detailColor;
-    ctx.fillText(unit, cx, ledY + ledHeight + ledHeight * 0.2);
-
     // Draw min/max values in corners of the LED display
     ctx.font = `bold ${ledHeight * 0.12}px 'Courier New', monospace`;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
     ctx.textAlign = "left";
     ctx.fillText(
       `${min}`,
@@ -445,12 +457,18 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
       ledY + ledHeight - ledHeight * 0.1
     );
 
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
     ctx.textAlign = "right";
     ctx.fillText(
       `${max}`,
       ledX + ledWidth - ledWidth * 0.05,
       ledY + ledHeight - ledHeight * 0.1
     );
+    // Draw unit below the number
+    ctx.font = `bold ${ledHeight * 0.1}px Arial, monospace`;
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.fillText(unit, cx, ledY + ledHeight * 0.75);
   }
 );
 
@@ -469,8 +487,9 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     ctx.clearRect(0, 0, width, height);
 
     // Dimensions for the bar
-    const barThickness = Math.min(width, height) * 0.2;
-    const padding = barThickness * 0.2;
+    const barThickness = Math.max(width, height);
+    // const padding = barThickness * 0;
+    const padding = 0;
 
     // Determine bar layout based on orientation
     const barLength = isVertical ? height - padding * 2 : width - padding * 2;
@@ -485,7 +504,7 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     const gradient = isVertical
       ? ctx.createLinearGradient(barX, barY + barLength, barX, barY)
       : ctx.createLinearGradient(barX, barY, barX + barLength, barY);
-    gradient.addColorStop(0, "rgba(0, 0, 0, 0.8)");
+    gradient.addColorStop(0, "#001d3d");
     gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
 
     // Draw bar background
@@ -498,7 +517,13 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     );
 
     // Glowing active bar
-    const color = `rgba(${(1 - fraction) * 255}, ${fraction * 255}, 50, 1)`;
+    // const color = `rgba(${(1 - fraction) * 255}, ${fraction * 255}, 50, 1)`;
+    let color = "";
+    if (options.invertColors) {
+      color = `rgba(${(value / max) * 255}, ${(1 - value / max) * 255}, 0, 1)`;
+    } else {
+      color = `rgba(${(1 - value / max) * 255}, ${(value / max) * 255}, 0, 1)`;
+    }
     const shadowColor = `rgba(${(1 - fraction) * 255}, ${
       fraction * 255
     }, 50, 0.5)`;
@@ -519,32 +544,34 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     ctx.shadowBlur = 0;
 
     // Draw bar border
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.lineWidth = Math.min(width, height) * 0.02;
-    ctx.strokeRect(
-      barX,
-      barY,
-      isVertical ? barThickness : barLength,
-      isVertical ? barLength : barThickness
-    );
+    // ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    // ctx.lineWidth = Math.min(width, height) * 0.02;
+    // ctx.strokeRect(
+    //   barX,
+    //   barY,
+    //   isVertical ? barThickness : barLength,
+    //   isVertical ? barLength : barThickness
+    // );
 
     // Draw value text
-    ctx.font = `${Math.min(width, height) * 0.1}px Arial`;
+    ctx.font = `${Math.min(width, height) * 0.2}px Arial`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+    ctx.shadowBlur = 5;
     const valueText = `${value.toFixed(decimals)} ${unit}`;
     if (isVertical) {
       ctx.fillText(valueText, width / 2, barY + barLength + padding);
     } else {
-      ctx.fillText(valueText, barX + barLength / 2, height - padding);
+      ctx.fillText(valueText, barX + barLength / 2, height / 2);
 
       // Draw min/max labels for horizontal
-      ctx.font = `${Math.min(width, height) * 0.08}px Arial`;
-      ctx.textAlign = "left";
-      ctx.fillText(`${min}`, barX, barY + barThickness + padding);
-      ctx.textAlign = "right";
-      ctx.fillText(`${max}`, barX + barLength, barY + barThickness + padding);
+      // ctx.font = `${Math.min(width, height) * 0.08}px Arial`;
+      // ctx.textAlign = "left";
+      // ctx.fillText(`${min}`, barX, barY + barThickness + padding);
+      // ctx.textAlign = "right";
+      // ctx.fillText(`${max}`, barX + barLength, barY + barThickness + padding);
     }
   }
 );

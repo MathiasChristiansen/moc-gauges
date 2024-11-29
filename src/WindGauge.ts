@@ -134,9 +134,9 @@ WindGauge.registerSkin<WindGaugeOptions>(
     const width = rect.width;
     const height = rect.height;
 
-    parentElement.style.borderRadius = "50%";
-    parentElement.style.border = "2px solid rgba(0, 0, 0, 0.5)";
-    parentElement.style.overflow = "hidden";
+    // parentElement.style.borderRadius = "100%";
+    // parentElement.style.border = "2px solid rgba(0, 0, 0, 0.5)";
+    // parentElement.style.overflow = "hidden";
 
     const { needleColor, textColor, fontSize, unit } = options;
     const direction = state.direction;
@@ -147,7 +147,8 @@ WindGauge.registerSkin<WindGaugeOptions>(
     // Center of the wind gauge
     const cx = width / 2;
     const cy = height / 2;
-    const outerRadius = (Math.min(width, height) / 2) * 0.85;
+    const radius = Math.min(width, height) / 2 - 8;
+    const outerRadius = radius * 0.85;
     const centerRadius = outerRadius * 0.6; // Radius of the smaller center circle
 
     // Draw gradient background
@@ -164,6 +165,16 @@ WindGauge.registerSkin<WindGaugeOptions>(
     ctx.lineWidth = 2;
     ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
     ctx.shadowBlur = 20;
+    ctx.stroke();
+    ctx.shadowBlur = 0; // Reset shadow
+
+    // Draw glowing border circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+    ctx.lineWidth = 2;
+    ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
+    ctx.shadowBlur = 10;
     ctx.stroke();
     ctx.shadowBlur = 0; // Reset shadow
 

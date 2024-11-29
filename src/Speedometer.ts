@@ -7,6 +7,7 @@ export interface SpeedometerOptions extends GaugeOptions {
   needleColor?: string;
   unit?: string;
   skin?: string;
+  vertical?: boolean;
   decimals?: number;
   backgroundColor?: string;
 }
@@ -30,6 +31,7 @@ export class SpeedometerGauge extends GaugeBase {
       backgroundColor: "#ffffff",
       unit: "%",
       skin: "default",
+      vertical: false,
       decimals: 2,
       autoRender: false,
       ...options,
@@ -227,14 +229,15 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     ctx.fillText(`${max}`, width / 2 + needleLength, height / 2 + 20);
   }
 );
+
 SpeedometerGauge.registerSkin<SpeedometerOptions>(
   "futuristic-enhanced",
   (ctx, options, state, parentElement) => {
     const rect = parentElement.getBoundingClientRect();
 
-    parentElement.style.borderRadius = "50%";
-    parentElement.style.border = "2px solid rgba(0, 0, 0, 0.5)";
-    parentElement.style.overflow = "hidden";
+    // parentElement.style.borderRadius = "50%";
+    // parentElement.style.border = "2px solid rgba(0, 0, 0, 0.5)";
+    // parentElement.style.overflow = "hidden";
 
     const width = rect.width;
     const height = rect.height;
@@ -246,9 +249,9 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
 
     const cx = width / 2;
     const cy = height / 2;
-    const radius = Math.min(width, height) / 2.5;
-    const outerRadius = radius * 1;
-    const innerRadius = radius * 0.8;
+    const radius = Math.min(width, height) / 2 - 8;
+    const outerRadius = radius * 0.9;
+    const innerRadius = radius * 0.7;
 
     // Define angle range
     const startAngle = (5 * Math.PI) / 6;
@@ -263,7 +266,7 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
 
     // Glowing outer circle
     ctx.beginPath();
-    ctx.arc(cx, cy, radius * 1.4, 0, 2 * Math.PI);
+    ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
     ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
     ctx.lineWidth = 2;
     ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
@@ -292,8 +295,8 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
       const isMajorTick = i % 2 === 0;
 
       // Tick positions
-      const x1 = cx + radius * Math.cos(angle);
-      const y1 = cy + radius * Math.sin(angle);
+      const x1 = cx + outerRadius * Math.cos(angle);
+      const y1 = cy + outerRadius * Math.sin(angle);
       const x2 =
         cx + innerRadius * (isMajorTick ? 0.9 : 0.85) * Math.cos(angle);
       const y2 =
@@ -326,10 +329,10 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     const valueFraction = (value - min) / (max - min);
     const valueAngle = startAngle + valueFraction * totalAngle;
 
-    const arcThckness = radius * 0.2;
+    const arcThckness = outerRadius * 0.2;
 
     ctx.beginPath();
-    ctx.arc(cx, cy, radius - arcThckness / 2, startAngle, valueAngle);
+    ctx.arc(cx, cy, outerRadius - arcThckness / 2, startAngle, valueAngle);
     const color = `rgba(${(1 - value / max) * 255}, ${
       (value / max) * 255
     }, 0, 1)`;
@@ -367,8 +370,181 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
     ctx.fillText(`${unit}`, cx, cy + radius * 0.85);
 
-    ctx.font = `${radius * 0.22}px Arial`;
+    ctx.font = `${radius * 0.2}px Arial`;
     ctx.fillStyle = "#ffffff";
     ctx.fillText(`${value.toFixed(decimals)}`, cx, cy + radius * 0.55);
+  }
+);
+
+SpeedometerGauge.registerSkin<SpeedometerOptions>(
+  "futuristic-number",
+  (ctx, options, state, parentElement) => {
+    const rect = parentElement.getBoundingClientRect();
+
+    const width = rect.width;
+    const height = rect.height;
+
+    const { min, max, decimals, unit } = options;
+    const { value } = state;
+
+    ctx.clearRect(0, 0, width, height);
+
+    const cx = width / 2;
+    const cy = height / 2;
+
+    // Define LED display area
+    const ledWidth = width * 0.8;
+    const ledHeight = height * 0.4;
+    const ledX = (width - ledWidth) / 2;
+    const ledY = (height - ledHeight) / 2;
+
+    // Draw LED background
+    ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
+    ctx.fillRect(ledX, ledY, ledWidth, ledHeight);
+
+    const detailColor = "rgba(0, 128, 255, 0.8)";
+
+    // Draw glowing border
+    ctx.strokeStyle = detailColor;
+    ctx.lineWidth = Math.min(ledWidth, ledHeight) * 0.03;
+    ctx.shadowColor = detailColor;
+    ctx.shadowBlur = 15;
+    ctx.strokeRect(ledX, ledY, ledWidth, ledHeight);
+    ctx.shadowBlur = 0;
+
+    // Configure LED-style number display
+    ctx.font = `bold ${ledHeight * 0.4}px 'Courier New', monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    // Dynamic color for value based on proportion (red to green gradient)
+    const color = `rgba(${(1 - value / max) * 255}, ${
+      (value / max) * 255
+    }, 50, 1)`;
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 20;
+
+    // Draw the value
+    ctx.fillText(value.toFixed(decimals), cx, cy);
+
+    // Reset shadow
+    ctx.shadowBlur = 0;
+
+    // Draw unit below the number
+    ctx.font = `bold ${ledHeight * 0.15}px 'Courier New', monospace`;
+    ctx.fillStyle = detailColor;
+    ctx.fillText(unit, cx, ledY + ledHeight + ledHeight * 0.2);
+
+    // Draw min/max values in corners of the LED display
+    ctx.font = `bold ${ledHeight * 0.12}px 'Courier New', monospace`;
+    ctx.textAlign = "left";
+    ctx.fillText(
+      `${min}`,
+      ledX + ledWidth * 0.05,
+      ledY + ledHeight - ledHeight * 0.1
+    );
+
+    ctx.textAlign = "right";
+    ctx.fillText(
+      `${max}`,
+      ledX + ledWidth - ledWidth * 0.05,
+      ledY + ledHeight - ledHeight * 0.1
+    );
+  }
+);
+
+SpeedometerGauge.registerSkin<SpeedometerOptions>(
+  "futuristic-bar",
+  (ctx, options, state, parentElement) => {
+    const rect = parentElement.getBoundingClientRect();
+
+    const width = rect.width;
+    const height = rect.height;
+
+    const { min, max, decimals, unit } = options;
+    const { value } = state;
+    const isVertical = options.vertical || false; // Default to horizontal if not specified
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Dimensions for the bar
+    const barThickness = Math.min(width, height) * 0.2;
+    const padding = barThickness * 0.2;
+
+    // Determine bar layout based on orientation
+    const barLength = isVertical ? height - padding * 2 : width - padding * 2;
+    const barX = isVertical ? (width - barThickness) / 2 : padding;
+    const barY = isVertical ? padding : (height - barThickness) / 2;
+
+    // Calculate active bar length based on value
+    const fraction = (value - min) / (max - min);
+    const activeLength = Math.max(0, Math.min(fraction, 1)) * barLength;
+
+    // Background gradient for the bar
+    const gradient = isVertical
+      ? ctx.createLinearGradient(barX, barY + barLength, barX, barY)
+      : ctx.createLinearGradient(barX, barY, barX + barLength, barY);
+    gradient.addColorStop(0, "rgba(0, 0, 0, 0.8)");
+    gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
+
+    // Draw bar background
+    ctx.fillStyle = gradient;
+    ctx.fillRect(
+      barX,
+      barY,
+      isVertical ? barThickness : barLength,
+      isVertical ? barLength : barThickness
+    );
+
+    // Glowing active bar
+    const color = `rgba(${(1 - fraction) * 255}, ${fraction * 255}, 50, 1)`;
+    const shadowColor = `rgba(${(1 - fraction) * 255}, ${
+      fraction * 255
+    }, 50, 0.5)`;
+
+    ctx.fillStyle = color;
+    ctx.shadowColor = shadowColor;
+    ctx.shadowBlur = 15;
+    if (isVertical) {
+      ctx.fillRect(
+        barX,
+        barY + (barLength - activeLength),
+        barThickness,
+        activeLength
+      );
+    } else {
+      ctx.fillRect(barX, barY, activeLength, barThickness);
+    }
+    ctx.shadowBlur = 0;
+
+    // Draw bar border
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = Math.min(width, height) * 0.02;
+    ctx.strokeRect(
+      barX,
+      barY,
+      isVertical ? barThickness : barLength,
+      isVertical ? barLength : barThickness
+    );
+
+    // Draw value text
+    ctx.font = `${Math.min(width, height) * 0.1}px Arial`;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const valueText = `${value.toFixed(decimals)} ${unit}`;
+    if (isVertical) {
+      ctx.fillText(valueText, width / 2, barY + barLength + padding);
+    } else {
+      ctx.fillText(valueText, barX + barLength / 2, height - padding);
+
+      // Draw min/max labels for horizontal
+      ctx.font = `${Math.min(width, height) * 0.08}px Arial`;
+      ctx.textAlign = "left";
+      ctx.fillText(`${min}`, barX, barY + barThickness + padding);
+      ctx.textAlign = "right";
+      ctx.fillText(`${max}`, barX + barLength, barY + barThickness + padding);
+    }
   }
 );

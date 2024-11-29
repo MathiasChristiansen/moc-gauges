@@ -281,7 +281,7 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     }
 
     // Draw speedometer ticks
-    ctx.font = "10px Arial";
+    ctx.font = `${radius * 0.1}px Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     const totalAngle = endAngle - startAngle;
@@ -294,8 +294,10 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
       // Tick positions
       const x1 = cx + radius * Math.cos(angle);
       const y1 = cy + radius * Math.sin(angle);
-      const x2 = cx + (radius - (isMajorTick ? 15 : 10)) * Math.cos(angle);
-      const y2 = cy + (radius - (isMajorTick ? 15 : 10)) * Math.sin(angle);
+      const x2 =
+        cx + innerRadius * (isMajorTick ? 0.9 : 0.85) * Math.cos(angle);
+      const y2 =
+        cy + innerRadius * (isMajorTick ? 0.9 : 0.85) * Math.sin(angle);
 
       // Draw tick
       ctx.beginPath();
@@ -308,8 +310,8 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
       // Draw tick label
       if (isMajorTick) {
         const labelValue = min + fraction * (max - min);
-        const textX = cx + (radius - 25) * Math.cos(angle);
-        const textY = cy + (radius - 25) * Math.sin(angle);
+        const textX = cx + innerRadius * 0.75 * Math.cos(angle);
+        const textY = cy + innerRadius * 0.75 * Math.sin(angle);
 
         ctx.save();
         ctx.translate(textX, textY);
@@ -324,13 +326,15 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     const valueFraction = (value - min) / (max - min);
     const valueAngle = startAngle + valueFraction * totalAngle;
 
+    const arcThckness = radius * 0.2;
+
     ctx.beginPath();
-    ctx.arc(cx, cy, radius - 7, startAngle, valueAngle);
+    ctx.arc(cx, cy, radius - arcThckness / 2, startAngle, valueAngle);
     const color = `rgba(${(1 - value / max) * 255}, ${
       (value / max) * 255
     }, 0, 1)`;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 14;
+    ctx.lineWidth = arcThckness;
     ctx.shadowColor = color;
     ctx.shadowBlur = 15;
     ctx.stroke();
@@ -359,11 +363,11 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     ctx.shadowBlur = 0;
 
     // Draw speedometer value and unit
-    ctx.font = "12px Arial";
+    ctx.font = `${radius * 0.12}px Arial`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
     ctx.fillText(`${unit}`, cx, cy + radius * 0.85);
 
-    ctx.font = "20px Arial";
+    ctx.font = `${radius * 0.22}px Arial`;
     ctx.fillStyle = "#ffffff";
     ctx.fillText(`${value.toFixed(decimals)}`, cx, cy + radius * 0.55);
   }

@@ -147,7 +147,7 @@ WindGauge.registerSkin<WindGaugeOptions>(
     // Center of the wind gauge
     const cx = width / 2;
     const cy = height / 2;
-    const outerRadius = Math.min(width, height) / 2 - 15;
+    const outerRadius = (Math.min(width, height) / 2) * 0.85;
     const centerRadius = outerRadius * 0.6; // Radius of the smaller center circle
 
     // Draw gradient background
@@ -171,7 +171,7 @@ WindGauge.registerSkin<WindGaugeOptions>(
     const degreeRadius = outerRadius * 0.95; // Position for degree values
     ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
     ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-    ctx.font = `${fontSize * 0.5}px Arial`;
+    ctx.font = `${outerRadius * 0.1}px Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
@@ -198,7 +198,7 @@ WindGauge.registerSkin<WindGaugeOptions>(
         ctx.save(); // Save the current context state
         ctx.translate(textX, textY); // Move to the text position
         ctx.rotate(tickAngle + Math.PI / 2); // Rotate to align with the tick
-        ctx.fillText(`${i}`, 0, -10); // Draw text at the rotated position
+        ctx.fillText(`${i}`, 0, (innerTickRadius - outerTickRadius) * 2.5); // Draw text at the rotated position
         ctx.restore(); // Restore the context to the previous state
       }
     }
@@ -214,7 +214,7 @@ WindGauge.registerSkin<WindGaugeOptions>(
 
     // Draw cardinal directions inside the center circle
     const cardinalDirections = { N: 0, E: 90, S: 180, W: 270 };
-    ctx.font = `${fontSize * 0.6}px Arial`;
+    ctx.font = `${outerRadius * 0.14}px Arial`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
     ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
     ctx.textAlign = "center";
@@ -270,20 +270,20 @@ WindGauge.registerSkin<WindGaugeOptions>(
     ctx.fill();
 
     // Display wind speed in the center
-    ctx.font = `${fontSize * 1.2}px Arial`;
+    ctx.font = `${outerRadius * 0.25}px Arial`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
     const speedText = `${Math.round(speed)}`;
     ctx.fillText(speedText, cx, cy);
 
     // Display unit (knots) below the wind speed
-    ctx.font = `${fontSize * 0.8}px Arial`;
+    ctx.font = `${outerRadius * 0.14}px Arial`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-    ctx.fillText(unit, cx, cy + fontSize * 1.2);
+    ctx.fillText(unit, cx, cy + outerRadius * 0.2);
 
     // Display degrees slightly up and to the right of the wind speed
-    ctx.font = `${fontSize * 0.5}px Arial`;
+    ctx.font = `${outerRadius * 0.1}px Arial`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
     const degreeText = `${Math.round(direction)}°`;
-    ctx.fillText(degreeText, cx, cy - fontSize * 1.2);
+    ctx.fillText(degreeText, cx, cy - outerRadius * 0.2);
   }
 );

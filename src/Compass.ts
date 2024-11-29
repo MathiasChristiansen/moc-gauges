@@ -297,7 +297,7 @@ CompassGauge.registerSkin<CompassOptions>(
     // Center of the compass
     const cx = width / 2;
     const cy = height / 2;
-    const outerRadius = Math.min(width, height) / 2 - 15;
+    const outerRadius = (Math.min(width, height) / 2) * 0.85;
     const centerRadius = outerRadius * 0.6; // Radius of the smaller center circle
 
     // Draw gradient background
@@ -321,7 +321,7 @@ CompassGauge.registerSkin<CompassOptions>(
     const degreeRadius = outerRadius * 0.95; // Position for degree values
     ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
     ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-    ctx.font = `${fontSize * 0.5}px Arial`;
+    ctx.font = `${outerRadius * 0.1}px Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
@@ -348,7 +348,7 @@ CompassGauge.registerSkin<CompassOptions>(
         ctx.save(); // Save the current context state
         ctx.translate(textX, textY); // Move to the text position
         ctx.rotate(tickAngle + Math.PI / 2); // Rotate to align with the tick
-        ctx.fillText(`${i}`, 0, -10); // Draw text at the rotated position
+        ctx.fillText(`${i}`, 0, (innerTickRadius - outerTickRadius) * 2.5); // Draw text at the rotated position
         ctx.restore(); // Restore the context to the previous state
       }
     }
@@ -364,7 +364,7 @@ CompassGauge.registerSkin<CompassOptions>(
 
     // Draw cardinal directions inside the center circle
     const cardinalDirections = { N: 0, E: 90, S: 180, W: 270 };
-    ctx.font = `${fontSize * 0.6}px Arial`;
+    ctx.font = `${outerRadius * 0.14}px Arial`;
     ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
     ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
     ctx.textAlign = "center";
@@ -426,8 +426,8 @@ CompassGauge.registerSkin<CompassOptions>(
     ctx.shadowBlur = 0;
 
     // Display the heading value
-    ctx.font = "20px Arial";
-    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+    ctx.font = `${outerRadius * 0.25}px Arial`;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(`${Math.round(heading)}°`, cx, cy);

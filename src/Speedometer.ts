@@ -112,6 +112,18 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
   "futuristic",
   (ctx, options, state, parentElement) => {
     const rect = parentElement.getBoundingClientRect();
+
+    /**
+     * TODO: Maybe add preconfig function to the registerSkin method that registers
+     *       functions that should be called before the skin is applied.
+     *
+     *       This way we can ensure that the parentElement has the correct styles, and
+     *       avoid having to set them in the skin function.
+     */
+    parentElement.style.borderRadius = "50%";
+    parentElement.style.border = "2px solid rgba(0, 0, 0, 0.5)";
+    parentElement.style.overflow = "hidden";
+
     const width = rect.width;
     const height = rect.height;
 
@@ -141,7 +153,7 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     ctx.beginPath();
     ctx.arc(
       width / 2,
-      (height * 2.5) / 4,
+      height / 2,
       Math.min(width, height) / 3,
       Math.PI,
       2 * Math.PI
@@ -155,7 +167,7 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     ctx.beginPath();
     ctx.arc(
       width / 2,
-      (height * 2.5) / 4,
+      height / 2,
       Math.min(width, height) / 3,
       Math.PI,
       Math.PI + ((value - min) / (max - min)) * Math.PI
@@ -194,21 +206,24 @@ SpeedometerGauge.registerSkin<SpeedometerOptions>(
     // ctx.fill();
     // ctx.shadowBlur = 0;
 
+    // Draw the speedometer unit
+    ctx.font = "12px Arial";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${unit}`, width / 2, height / 2);
+
     // Draw the speedometer value
-    ctx.font = "20px Arial";
+    ctx.font = "24px Arial";
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(
-      `${value.toFixed(decimals)}${unit}`,
-      width / 2,
-      (height * 2.5) / 4 - 16
-    );
+    ctx.fillText(`${value.toFixed(decimals)}`, width / 2, height / 2 + 32);
 
     // Draw min and max values
     ctx.font = "12px Arial";
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(`${min}`, width / 2 - needleLength, (height * 2.5) / 4 + 20);
-    ctx.fillText(`${max}`, width / 2 + needleLength, (height * 2.5) / 4 + 20);
+    ctx.fillText(`${min}`, width / 2 - needleLength, height / 2 + 20);
+    ctx.fillText(`${max}`, width / 2 + needleLength, height / 2 + 20);
   }
 );

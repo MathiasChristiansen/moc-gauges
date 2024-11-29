@@ -150,9 +150,9 @@ export abstract class GaugeBase {
   public setSkin(skin: string): void {
     const newRenderFunction = GaugeBase.skins[skin];
 
-    if (!newRenderFunction) {
-      throw new Error(`Skin not found: ${skin}`);
-    }
+    // if (!newRenderFunction) {
+    //   throw new Error(`Skin not found: ${skin}`);
+    // }
 
     this.renderFunction = newRenderFunction ?? this.defaultRender;
   }

@@ -103,9 +103,10 @@ export const HorizontalBarSpeedDirection = (
 
       // Draw label
       if (isSemimajor) {
-        const label = { 45: "NE", 135: "SE", 225: "SW", 315: "NW" }[
-          (degree + totalDegrees) % totalDegrees
-        ] as string;
+        const label =
+          ({ 45: "NE", 135: "SE", 225: "SW", 315: "NW" }[
+            (degree + totalDegrees / 2) % totalDegrees
+          ] as string) ?? "";
         ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
         ctx.font = `${(fontSize || barHeight * 0.15) * 0.8}px Arial`;
         ctx.fillText(
@@ -147,5 +148,28 @@ export const HorizontalBarSpeedDirection = (
     barWidth - barHeight * 0.1,
     barHeight * 0.1
   );
+
+  // Draw the closest cardinal direction
+  const cardinal = [
+    "North",
+    "Northeast",
+    "East",
+    "Southeast",
+    "South",
+    "Southwest",
+    "West",
+    "Northwest",
+  ];
+
+  let cardinalIndex = Math.round((((direction % 360) + 360) % 360) / 45) % 8; // Ensure positive modulo
+  const closestCardinal = cardinal[cardinalIndex];
+
+  // Set font and style for the canvas context
+  ctx.font = `${barHeight * 0.1}px Arial`;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+  ctx.textAlign = "left";
+
+  // Draw the text
+  ctx.fillText(closestCardinal, barHeight * 0.1, barHeight * 0.1);
 };
 // );

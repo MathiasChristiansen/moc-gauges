@@ -70,7 +70,7 @@ export const HorizontalBarSpeedDirection = (
       const isCardinal = degree % 90 === 0;
 
       // Draw major tick
-      const majorTickLength = barHeight * 0.5; // Half the bar height
+      const majorTickLength = barHeight * 0.25; // Half the bar height
       ctx.beginPath();
       ctx.moveTo(tickPx, barHeight);
       ctx.lineTo(tickPx, barHeight - majorTickLength);
@@ -92,13 +92,29 @@ export const HorizontalBarSpeedDirection = (
       );
     } else {
       // Draw minor tick
-      const minorTickLength = barHeight * (degree % 45 === 0 ? 0.35 : 0.25); // One-quarter the bar height
+      const isSemimajor = degree % 45 === 0;
+      const minorTickLength = barHeight * (isSemimajor ? 0.2 : 0.15); // One-quarter the bar height
       ctx.beginPath();
       ctx.moveTo(tickPx, barHeight);
       ctx.lineTo(tickPx, barHeight - minorTickLength);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.strokeStyle = `rgba(255, 255, 255, ${isSemimajor ? 0.4 : 0.2})`;
       ctx.lineWidth = 1;
       ctx.stroke();
+
+      // Draw label
+      if (isSemimajor) {
+        const label = { 45: "NE", 135: "SE", 225: "SW", 315: "NW" }[
+          (degree + totalDegrees) % totalDegrees
+        ] as string;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.font = `${(fontSize || barHeight * 0.15) * 0.8}px Arial`;
+        ctx.fillText(
+          label,
+          tickPx,
+          barHeight - minorTickLength - barHeight * 0.05
+        );
+        ctx.font = `${fontSize || barHeight * 0.15}px Arial`;
+      }
     }
   }
 
@@ -120,7 +136,7 @@ export const HorizontalBarSpeedDirection = (
   // Display the wind speed in the center
   ctx.font = `${barHeight * 0.18}px Arial`;
   ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-  ctx.fillText(`${Math.round(speed)} ${unit}`, barWidth / 2, barHeight * 0.2);
+  ctx.fillText(`${Math.round(speed)} ${unit}`, barWidth / 2, barHeight * 0.4);
 
   // Draw the current direction in the bottom-right corner
   ctx.font = `${barHeight * 0.1}px Arial`;

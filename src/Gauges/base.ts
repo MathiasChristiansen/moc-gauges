@@ -24,7 +24,7 @@ export abstract class GaugeBase {
 
   private animationFrameId: number | null = null;
 
-  private static skins: Record<string, SkinRenderFunction<any>> = {};
+  public static skins: Record<string, SkinRenderFunction<any>> = {};
   private renderFunction: SkinRenderFunction<any>;
 
   constructor(parentElement: HTMLElement, options: GaugeOptions = {}) {

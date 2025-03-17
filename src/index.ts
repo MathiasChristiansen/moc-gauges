@@ -6,3 +6,4 @@ export const helloGauges: () => string = () => {
 export { SpeedometerGauge } from "./Gauges/Speedometer";
 export { WindGauge } from "./Gauges/Wind";
 export { CompassGauge } from "./Gauges/Compass";
+export { GaugeBase } from "./Gauges/base";

@@ -116,7 +116,7 @@ export class SpeedometerGauge extends GaugeBase {
   }
 }
 
-SpeedometerGauge.registerSkin("futuristic", Futuristic);
-SpeedometerGauge.registerSkin("futuristic-enhanced", FuturisticEnhanced);
-SpeedometerGauge.registerSkin("futuristic-bar", FuturisticBar);
-SpeedometerGauge.registerSkin("futuristic-number", FuturisticNumber);
+SpeedometerGauge.registerSkin("speedometer-default", FuturisticEnhanced);
+SpeedometerGauge.registerSkin("speedometer-minimal", Futuristic);
+SpeedometerGauge.registerSkin("speedometer-bar", FuturisticBar);
+SpeedometerGauge.registerSkin("speedometer-number", FuturisticNumber);

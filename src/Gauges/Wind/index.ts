@@ -129,8 +129,8 @@ export class WindGauge extends GaugeBase {
   }
 }
 
-WindGauge.registerSkin("futuristic-wind-arrow", FuturisticWindArrow);
+WindGauge.registerSkin("wind-default", FuturisticWindArrow);
 WindGauge.registerSkin(
-  "horizontal-bar-speed-direction",
+  "wind-horizontal-bar",
   HorizontalBarSpeedDirection
 );

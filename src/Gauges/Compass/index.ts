@@ -178,6 +178,6 @@ export class CompassGauge extends GaugeBase {
   }
 }
 
-CompassGauge.registerSkin("futuristic-compass", FuturisticCompass);
-CompassGauge.registerSkin("futuristic-compass-arrow", FuturisticCompassArrow);
-CompassGauge.registerSkin("horizontal-bar-compass", HorizontalBarCompass);
+CompassGauge.registerSkin("compass-default", FuturisticCompassArrow);
+CompassGauge.registerSkin("compass-minimal", FuturisticCompass);
+CompassGauge.registerSkin("compass-horizontal-bar", HorizontalBarCompass);

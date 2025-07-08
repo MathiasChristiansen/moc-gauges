@@ -1,6 +1,7 @@
 import { GaugeBase, GaugeOptions } from "../base.js";
 import { MarineDisplay } from "./skins/MarineDisplay.js";
 import { MinimalShipDisplay } from "./skins/MinimalShipDisplay.js";
+import { YoungWindTracker } from "./skins/YoungWindTracker.js";
 
 export interface ShipGaugeOptions extends GaugeOptions {
   needleColor?: string;
@@ -9,20 +10,26 @@ export interface ShipGaugeOptions extends GaugeOptions {
   easingFactor?: number;
   unit?: string;
   backgroundColor?: string;
-  showCOG?: boolean;          // Show Course Over Ground
-  showSOG?: boolean;          // Show Speed Over Ground
-  showWindCone?: boolean;     // Show wind direction cone
-  showWake?: boolean;         // Show ship wake trail
-  shipColor?: string;         // Color of the ship
-  windColor?: string;         // Color of wind indicators
-  cogColor?: string;          // Color of course over ground line
-  wakeColor?: string;         // Color of wake trail
+  showCOG?: boolean; // Show Course Over Ground
+  showSOG?: boolean; // Show Speed Over Ground
+  showWindCone?: boolean; // Show wind direction cone
+  showWake?: boolean; // Show ship wake trail
+  shipColor?: string; // Color of the ship
+  windColor?: string; // Color of wind indicators
+  cogColor?: string; // Color of course over ground line
+  wakeColor?: string; // Color of wake trail
 }
 
 export class ShipGauge extends GaugeBase {
   protected options: Required<ShipGaugeOptions>;
   protected gaugeType = "ship";
-  protected animatedProperties = ["heading", "cog", "sog", "windDirection", "windSpeed"];
+  protected animatedProperties = [
+    "heading",
+    "cog",
+    "sog",
+    "windDirection",
+    "windSpeed",
+  ];
 
   constructor(parentElement: HTMLElement, options: ShipGaugeOptions = {}) {
     super(parentElement, {
@@ -33,7 +40,7 @@ export class ShipGauge extends GaugeBase {
       fontSize: 12,
       ...options,
     });
-    
+
     this.options = {
       needleColor: "#007bff",
       textColor: "#ffffff",
@@ -55,19 +62,19 @@ export class ShipGauge extends GaugeBase {
     };
 
     // Initialize animation state
-    this.animationState = { 
-      heading: 0,        // Ship's heading (bow direction)
-      cog: 0,           // Course over ground
-      sog: 0,           // Speed over ground
+    this.animationState = {
+      heading: 0, // Ship's heading (bow direction)
+      cog: 0, // Course over ground
+      sog: 0, // Speed over ground
       windDirection: 0, // True wind direction
-      windSpeed: 0      // Wind speed
+      windSpeed: 0, // Wind speed
     };
-    this.actualState = { 
-      heading: 0, 
-      cog: 0, 
-      sog: 0, 
-      windDirection: 0, 
-      windSpeed: 0 
+    this.actualState = {
+      heading: 0,
+      cog: 0,
+      sog: 0,
+      windDirection: 0,
+      windSpeed: 0,
     };
   }
 
@@ -82,22 +89,23 @@ export class ShipGauge extends GaugeBase {
       if (this.actualState.hasOwnProperty(key)) {
         const actualValue = this.actualState[key];
         const animationValue = this.animationState[key] || 0;
-        
+
         // Handle circular values (angles) differently
-        if (key === 'heading' || key === 'cog' || key === 'windDirection') {
+        if (key === "heading" || key === "cog" || key === "windDirection") {
           // Calculate the shortest angular distance
           let diff = actualValue - animationValue;
           if (diff > 180) diff -= 360;
           if (diff < -180) diff += 360;
-          
+
           this.animationState[key] = animationValue + diff * easingFactor;
-          
+
           // Normalize to 0-360 range
           if (this.animationState[key] < 0) this.animationState[key] += 360;
           if (this.animationState[key] >= 360) this.animationState[key] -= 360;
         } else {
           // Linear interpolation for non-angular values
-          this.animationState[key] = animationValue + (actualValue - animationValue) * easingFactor;
+          this.animationState[key] =
+            animationValue + (actualValue - animationValue) * easingFactor;
         }
       }
     }
@@ -136,7 +144,7 @@ export class ShipGauge extends GaugeBase {
     ctx.font = `${fontSize}px Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    
+
     cardinalPoints.forEach((point, index) => {
       const angle = (index * Math.PI) / 2 - Math.PI / 2; // 0, 90, 180, 270 degrees
       const textX = cx + radius * 0.85 * Math.cos(angle);
@@ -149,19 +157,19 @@ export class ShipGauge extends GaugeBase {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate((heading * Math.PI) / 180);
-    
+
     ctx.beginPath();
-    ctx.moveTo(0, -shipSize);           // Bow
-    ctx.lineTo(-shipSize * 0.5, shipSize * 0.7);  // Port stern
-    ctx.lineTo(shipSize * 0.5, shipSize * 0.7);   // Starboard stern
+    ctx.moveTo(0, -shipSize); // Bow
+    ctx.lineTo(-shipSize * 0.5, shipSize * 0.7); // Port stern
+    ctx.lineTo(shipSize * 0.5, shipSize * 0.7); // Starboard stern
     ctx.closePath();
-    
+
     ctx.fillStyle = shipColor;
     ctx.fill();
     ctx.strokeStyle = textColor;
     ctx.lineWidth = 2;
     ctx.stroke();
-    
+
     ctx.restore();
 
     // Draw speed and direction text
@@ -171,9 +179,16 @@ export class ShipGauge extends GaugeBase {
     ctx.fillText(`HDG: ${heading.toFixed(0)}°`, 10, 20);
     ctx.fillText(`COG: ${cog.toFixed(0)}°`, 10, 40);
     ctx.fillText(`SOG: ${sog.toFixed(1)} ${this.options.unit}`, 10, 60);
-    ctx.fillText(`Wind: ${windDirection.toFixed(0)}° @ ${windSpeed.toFixed(1)} ${this.options.unit}`, 10, 80);
+    ctx.fillText(
+      `Wind: ${windDirection.toFixed(0)}° @ ${windSpeed.toFixed(1)} ${
+        this.options.unit
+      }`,
+      10,
+      80
+    );
   }
 }
 
-ShipGauge.registerSkin("ship", "default", MarineDisplay);
-ShipGauge.registerSkin("ship", "minimal", MinimalShipDisplay);
+GaugeBase.registerSkin("ship", "default", MarineDisplay);
+GaugeBase.registerSkin("ship", "minimal", MinimalShipDisplay);
+GaugeBase.registerSkin("ship", "windTracker", YoungWindTracker);

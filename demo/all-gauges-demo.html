@@ -210,6 +210,21 @@
             </div>
         </div>
 
+        <!-- Ship Section -->
+        <div class="gauge-section">
+            <div class="section-title">🚢 Ship Gauges</div>
+            <div class="gauge-grid" id="ship-grid">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="skin-selector">
+                Skin: <select id="ship-skin">
+                    <option value="default">Marine Display</option>
+                    <option value="minimal">Minimal</option>
+                </select>
+                Ship: HDG <span id="ship-heading-display">0</span>° | COG <span id="ship-cog-display">0</span>° | SOG <span id="ship-sog-display">0</span> knots
+            </div>
+        </div>
+
         <div class="controls">
             <h3>🎮 Demo Controls</h3>
             
@@ -241,12 +256,14 @@
         import { CompassGauge } from '../dist/Gauges/Compass/index.js';
         import { WindGauge } from '../dist/Gauges/Wind/index.js';
         import { TrendGauge } from '../dist/Gauges/trend/index.js';
+        import { ShipGauge } from '../dist/Gauges/Ship/index.js';
 
         let gauges = {
             speedometer: null,
             compass: null,
             wind: null,
-            trend: null
+            trend: null,
+            ship: null
         };
         
         let animationInterval = null;
@@ -255,7 +272,10 @@
             heading: 0,
             windSpeed: 0,
             windDirection: 0,
-            trendValue: 50
+            trendValue: 50,
+            shipHeading: 0,
+            shipCOG: 0,
+            shipSOG: 0
         };
 
         // Initialize all gauge types
@@ -288,6 +308,13 @@
                 { skin: 'arrow-indicator', autoRender: true, bufferSize: 15 }
             );
 
+            // Ship
+            createGaugeContainer('ship-grid', 'ship-1', 'Marine');
+            gauges.ship = new ShipGauge(
+                document.getElementById('ship-1'),
+                { skin: 'default', autoRender: true, unit: 'knots' }
+            );
+
             updateStatus('All gauge types initialized successfully');
         }
 
@@ -310,6 +337,9 @@
             document.getElementById('wind-display').textContent = 
                 `${Math.round(currentValues.windSpeed)} knots @ ${Math.round(currentValues.windDirection)}°`;
             document.getElementById('trend-display').textContent = currentValues.trendValue.toFixed(2);
+            document.getElementById('ship-heading-display').textContent = Math.round(currentValues.shipHeading);
+            document.getElementById('ship-cog-display').textContent = Math.round(currentValues.shipCOG);
+            document.getElementById('ship-sog-display').textContent = currentValues.shipSOG.toFixed(1);
 
             // Update individual gauge value displays
             document.getElementById('speedometer-1-value').textContent = `${Math.round(currentValues.speed)} km/h`;
@@ -317,6 +347,8 @@
             document.getElementById('wind-1-value').textContent = 
                 `${Math.round(currentValues.windSpeed)} kts, ${Math.round(currentValues.windDirection)}°`;
             document.getElementById('trend-1-value').textContent = `Value: ${currentValues.trendValue.toFixed(1)}`;
+            document.getElementById('ship-1-value').textContent = 
+                `HDG: ${Math.round(currentValues.shipHeading)}°, SOG: ${currentValues.shipSOG.toFixed(1)} kts`;
         }
 
         // Realistic vehicle demo
@@ -389,6 +421,12 @@
                 currentValues.trendValue += (Math.random() - 0.5) * 2;
                 currentValues.trendValue = Math.max(0, Math.min(100, currentValues.trendValue));
                 
+                // Update ship values (convert from car simulation to marine)
+                currentValues.shipHeading = currentValues.heading;
+                currentValues.shipCOG = currentValues.heading + (Math.random() - 0.5) * 10; // Small deviation for current effect
+                currentValues.shipSOG = currentValues.speed * 0.1; // Convert km/h to knots (roughly)
+                currentValues.shipCOG = ((currentValues.shipCOG % 360) + 360) % 360;
+                
                 updateGauges();
                 updateDisplays();
             }, 200);
@@ -448,6 +486,15 @@
             }
             if (gauges.trend) {
                 gauges.trend.setData({ value: currentValues.trendValue });
+            }
+            if (gauges.ship) {
+                gauges.ship.setData({ 
+                    heading: currentValues.shipHeading,
+                    cog: currentValues.shipCOG,
+                    sog: currentValues.shipSOG,
+                    windDirection: currentValues.windDirection,
+                    windSpeed: currentValues.windSpeed
+                });
             }
         }
 

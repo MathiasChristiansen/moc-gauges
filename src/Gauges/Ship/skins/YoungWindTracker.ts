@@ -193,25 +193,25 @@ export function YoungWindTracker(
   ctx.fillText("UTD350", 20, height - 45);
   ctx.fillText("WIND SPEED & DIRECTION", 20, height - 30);
   
-  // Add status indicators (moved down to avoid overlap)
+  // Add status indicators (moved to bottom right corner)
   ctx.font = `${fontSize * 0.6}px Arial`;
-  ctx.textAlign = "left";
-  ctx.fillText("max", width - 80, displayY + displayHeight + 25);
-  ctx.fillText("2 min", width - 80, displayY + displayHeight + 40);
-  ctx.fillText("10 min", width - 80, displayY + displayHeight + 55);
+  ctx.textAlign = "right";
+  ctx.fillText("max", width - 30, height - 60);
+  ctx.fillText("2 min", width - 30, height - 45);
+  ctx.fillText("10 min", width - 30, height - 30);
   
-  // Add small indicator LEDs (adjusted position)
+  // Add small indicator LEDs (bottom right position)
   ctx.fillStyle = "#ff0000";
   ctx.beginPath();
-  ctx.arc(width - 90, displayY + displayHeight + 22, 3, 0, 2 * Math.PI);
+  ctx.arc(width - 20, height - 63, 3, 0, 2 * Math.PI);
   ctx.fill();
   
   ctx.fillStyle = "#00ff00";
   ctx.beginPath();
-  ctx.arc(width - 90, displayY + displayHeight + 37, 3, 0, 2 * Math.PI);
+  ctx.arc(width - 20, height - 48, 3, 0, 2 * Math.PI);
   ctx.fill();
   
   ctx.beginPath();
-  ctx.arc(width - 90, displayY + displayHeight + 52, 3, 0, 2 * Math.PI);
+  ctx.arc(width - 20, height - 33, 3, 0, 2 * Math.PI);
   ctx.fill();
 }

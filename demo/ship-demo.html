@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚢 Ship Gauge Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            text-decoration: none;
+            color: white;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .gauge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .gauge-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gauge-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            color: #7dd3fc;
+        }
+
+        .gauge-display {
+            width: 100%;
+            height: 300px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
+        }
+
+        .gauge-info {
+            text-align: center;
+            font-size: 0.9em;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .controls h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #7dd3fc;
+        }
+
+        .ship-display {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .ship-display div {
+            margin: 5px 0;
+        }
+
+        .control-group {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .control-group label {
+            min-width: 120px;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            min-width: 200px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4ade80;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        button {
+            background: linear-gradient(45deg, #4ade80, #22c55e);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            font-family: monospace;
+        }
+
+        .scenario-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .metadata-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .metadata-title {
+            color: #7dd3fc;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Test Suite</a>
+        
+        <h1>🚢 Ship Gauge Demo</h1>
+        
+        <div class="gauge-grid">
+            <div class="gauge-container">
+                <div class="gauge-title">Marine Display</div>
+                <div id="ship-marine" class="gauge-display"></div>
+                <div class="gauge-info">Complete marine navigation display with ship outline, course vectors, and wind cone</div>
+            </div>
+            
+            <div class="gauge-container">
+                <div class="gauge-title">Minimal Ship Display</div>
+                <div id="ship-minimal" class="gauge-display"></div>
+                <div class="gauge-info">Simplified display focusing on essential navigation data</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h2>⚓ Navigation Controls</h2>
+            
+            <div class="ship-display">
+                <div>
+                    <strong>Heading:</strong> <span id="heading-value">0</span>° | 
+                    <strong>COG:</strong> <span id="cog-value">0</span>° | 
+                    <strong>SOG:</strong> <span id="sog-value">0</span> knots
+                </div>
+                <div>
+                    <strong>Wind:</strong> <span id="wind-direction-value">0</span>° @ <span id="wind-speed-value">0</span> knots
+                </div>
+                <div class="wind-description" id="wind-description">No wind data</div>
+            </div>
+            
+            <div class="control-group">
+                <label>Ship Heading:</label>
+                <input type="range" id="heading-slider" min="0" max="359" value="0" step="1">
+                <span id="heading-display">0</span>°
+            </div>
+            
+            <div class="control-group">
+                <label>Course Over Ground:</label>
+                <input type="range" id="cog-slider" min="0" max="359" value="0" step="1">
+                <span id="cog-display">0</span>°
+            </div>
+            
+            <div class="control-group">
+                <label>Speed Over Ground:</label>
+                <input type="range" id="sog-slider" min="0" max="30" value="0" step="0.5">
+                <span id="sog-display">0</span> knots
+            </div>
+            
+            <div class="control-group">
+                <label>Wind Direction:</label>
+                <input type="range" id="wind-direction-slider" min="0" max="359" value="0" step="1">
+                <span id="wind-direction-display">0</span>°
+            </div>
+            
+            <div class="control-group">
+                <label>Wind Speed:</label>
+                <input type="range" id="wind-speed-slider" min="0" max="50" value="0" step="1">
+                <span id="wind-speed-display">0</span> knots
+            </div>
+            
+            <div class="scenario-buttons">
+                <button onclick="setScenario('harbor')">🏠 Harbor Departure</button>
+                <button onclick="setScenario('sailing')">⛵ Sailing</button>
+                <button onclick="setScenario('motor')">🚤 Motor Cruising</button>
+                <button onclick="setScenario('storm')">⛈️ Storm Weather</button>
+                <button onclick="setScenario('drift')">🌊 Current Drift</button>
+            </div>
+            
+            <div class="scenario-buttons">
+                <button onclick="simulateNavigation()">🧭 Auto Navigation</button>
+                <button onclick="simulateManeuvers()">↻ Ship Maneuvers</button>
+                <button onclick="simulateWeatherChange()">🌦️ Weather Change</button>
+                <button onclick="stopAnimation()">⏹️ Stop Animation</button>
+            </div>
+            
+            <div class="status" id="status">
+                Ready. Use controls to test the ship gauges.
+            </div>
+        </div>
+
+        <div class="metadata-display">
+            <div class="metadata-title">📊 Ship Gauge Metadata</div>
+            <div id="metadata-content">Loading gauge metadata...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { ShipGauge } from '../dist/Gauges/Ship/index.js';
+
+        let gauges = {};
+        let animationInterval = null;
+
+        // Wind descriptions based on speed
+        const windDescriptions = [
+            { min: 0, max: 1, desc: "Calm seas" },
+            { min: 1, max: 3, desc: "Light air" },
+            { min: 4, max: 6, desc: "Light breeze" },
+            { min: 7, max: 10, desc: "Gentle breeze" },
+            { min: 11, max: 16, desc: "Moderate breeze" },
+            { min: 17, max: 21, desc: "Fresh breeze" },
+            { min: 22, max: 27, desc: "Strong breeze" },
+            { min: 28, max: 33, desc: "Near gale" },
+            { min: 34, max: 40, desc: "Gale" },
+            { min: 41, max: 47, desc: "Strong gale" },
+            { min: 48, max: 55, desc: "Storm" }
+        ];
+
+        function getWindDescription(speed) {
+            const description = windDescriptions.find(w => speed >= w.min && speed <= w.max);
+            return description ? description.desc : "Hurricane force";
+        }
+
+        // Initialize all gauges
+        function initializeGauges() {
+            const configs = [
+                { id: 'ship-marine', skin: 'default' },
+                { id: 'ship-minimal', skin: 'minimal' }
+            ];
+
+            configs.forEach(config => {
+                const container = document.getElementById(config.id);
+                if (container) {
+                    // Clean up existing gauge
+                    if (gauges[config.id]) {
+                        gauges[config.id].destroy();
+                    }
+                    
+                    gauges[config.id] = new ShipGauge(container, {
+                        skin: config.skin,
+                        autoRender: true,
+                        textColor: '#ffffff',
+                        fontSize: 12,
+                        unit: 'knots',
+                        showCOG: true,
+                        showSOG: true,
+                        showWindCone: true,
+                        showWake: true,
+                        shipColor: '#4a90e2',
+                        windColor: '#32cd32',
+                        cogColor: '#ff6b35',
+                        wakeColor: '#87ceeb'
+                    });
+                    
+                    // Explicitly set the skin to ensure it's applied
+                    gauges[config.id].setSkin(config.skin);
+                }
+            });
+
+            // Display metadata
+            const firstGauge = Object.values(gauges)[0];
+            if (firstGauge) {
+                const metadata = firstGauge.getMetadata();
+                document.getElementById('metadata-content').innerHTML = `
+                    <strong>Type:</strong> ${metadata.type}<br>
+                    <strong>Available Skins:</strong> ${metadata.availableSkins.join(', ')}<br>
+                    <strong>Animated Properties:</strong> ${metadata.animatedProperties.join(', ')}<br>
+                    <strong>Description:</strong> ${metadata.description}
+                `;
+            }
+
+            updateStatus('All ship gauges initialized');
+        }
+
+        // Update all gauges
+        function updateAllGauges(heading, cog, sog, windDirection, windSpeed) {
+            // Ensure angles are in 0-359 range
+            heading = ((heading % 360) + 360) % 360;
+            cog = ((cog % 360) + 360) % 360;
+            windDirection = ((windDirection % 360) + 360) % 360;
+            
+            Object.values(gauges).forEach(gauge => {
+                if (gauge) {
+                    gauge.setData({ 
+                        heading: heading,
+                        cog: cog,
+                        sog: sog,
+                        windDirection: windDirection,
+                        windSpeed: windSpeed
+                    });
+                }
+            });
+            
+            // Update displays
+            document.getElementById('heading-value').textContent = Math.round(heading);
+            document.getElementById('cog-value').textContent = Math.round(cog);
+            document.getElementById('sog-value').textContent = sog.toFixed(1);
+            document.getElementById('wind-direction-value').textContent = Math.round(windDirection);
+            document.getElementById('wind-speed-value').textContent = Math.round(windSpeed);
+            document.getElementById('wind-description').textContent = getWindDescription(windSpeed);
+            
+            document.getElementById('heading-display').textContent = Math.round(heading);
+            document.getElementById('cog-display').textContent = Math.round(cog);
+            document.getElementById('sog-display').textContent = sog.toFixed(1);
+            document.getElementById('wind-direction-display').textContent = Math.round(windDirection);
+            document.getElementById('wind-speed-display').textContent = Math.round(windSpeed);
+        }
+
+        // Control event listeners
+        document.getElementById('heading-slider').addEventListener('input', (e) => {
+            const heading = parseFloat(e.target.value);
+            const cog = parseFloat(document.getElementById('cog-slider').value);
+            const sog = parseFloat(document.getElementById('sog-slider').value);
+            const windDirection = parseFloat(document.getElementById('wind-direction-slider').value);
+            const windSpeed = parseFloat(document.getElementById('wind-speed-slider').value);
+            updateAllGauges(heading, cog, sog, windDirection, windSpeed);
+            updateStatus(`Ship heading set to ${Math.round(heading)}°`);
+        });
+
+        document.getElementById('cog-slider').addEventListener('input', (e) => {
+            const cog = parseFloat(e.target.value);
+            const heading = parseFloat(document.getElementById('heading-slider').value);
+            const sog = parseFloat(document.getElementById('sog-slider').value);
+            const windDirection = parseFloat(document.getElementById('wind-direction-slider').value);
+            const windSpeed = parseFloat(document.getElementById('wind-speed-slider').value);
+            updateAllGauges(heading, cog, sog, windDirection, windSpeed);
+            updateStatus(`Course over ground set to ${Math.round(cog)}°`);
+        });
+
+        document.getElementById('sog-slider').addEventListener('input', (e) => {
+            const sog = parseFloat(e.target.value);
+            const heading = parseFloat(document.getElementById('heading-slider').value);
+            const cog = parseFloat(document.getElementById('cog-slider').value);
+            const windDirection = parseFloat(document.getElementById('wind-direction-slider').value);
+            const windSpeed = parseFloat(document.getElementById('wind-speed-slider').value);
+            updateAllGauges(heading, cog, sog, windDirection, windSpeed);
+            updateStatus(`Speed over ground set to ${sog.toFixed(1)} knots`);
+        });
+
+        document.getElementById('wind-direction-slider').addEventListener('input', (e) => {
+            const windDirection = parseFloat(e.target.value);
+            const heading = parseFloat(document.getElementById('heading-slider').value);
+            const cog = parseFloat(document.getElementById('cog-slider').value);
+            const sog = parseFloat(document.getElementById('sog-slider').value);
+            const windSpeed = parseFloat(document.getElementById('wind-speed-slider').value);
+            updateAllGauges(heading, cog, sog, windDirection, windSpeed);
+            updateStatus(`Wind direction set to ${Math.round(windDirection)}°`);
+        });
+
+        document.getElementById('wind-speed-slider').addEventListener('input', (e) => {
+            const windSpeed = parseFloat(e.target.value);
+            const heading = parseFloat(document.getElementById('heading-slider').value);
+            const cog = parseFloat(document.getElementById('cog-slider').value);
+            const sog = parseFloat(document.getElementById('sog-slider').value);
+            const windDirection = parseFloat(document.getElementById('wind-direction-slider').value);
+            updateAllGauges(heading, cog, sog, windDirection, windSpeed);
+            updateStatus(`Wind speed set to ${Math.round(windSpeed)} knots`);
+        });
+
+        // Predefined scenarios
+        window.setScenario = (scenario) => {
+            stopAnimation();
+            
+            let heading, cog, sog, windDirection, windSpeed, description;
+            
+            switch(scenario) {
+                case 'harbor':
+                    heading = 45; cog = 50; sog = 3; windDirection = 120; windSpeed = 8;
+                    description = 'Departing harbor with light crosswind';
+                    break;
+                case 'sailing':
+                    heading = 220; cog = 225; sog = 6; windDirection = 180; windSpeed = 15;
+                    description = 'Sailing close hauled in moderate breeze';
+                    break;
+                case 'motor':
+                    heading = 90; cog = 90; sog = 12; windDirection = 270; windSpeed = 5;
+                    description = 'Motor cruising in calm conditions';
+                    break;
+                case 'storm':
+                    heading = 315; cog = 300; sog = 4; windDirection = 290; windSpeed = 35;
+                    description = 'Heavy weather with significant leeway';
+                    break;
+                case 'drift':
+                    heading = 0; cog = 45; sog = 2; windDirection = 90; windSpeed = 12;
+                    description = 'Drifting in current, significant set';
+                    break;
+            }
+            
+            // Update sliders
+            document.getElementById('heading-slider').value = heading;
+            document.getElementById('cog-slider').value = cog;
+            document.getElementById('sog-slider').value = sog;
+            document.getElementById('wind-direction-slider').value = windDirection;
+            document.getElementById('wind-speed-slider').value = windSpeed;
+            
+            updateAllGauges(heading, cog, sog, windDirection, windSpeed);
+            updateStatus(description);
+        };
+
+        // Simulation functions
+        window.simulateNavigation = () => {
+            stopAnimation();
+            updateStatus('Simulating navigation course...');
+            
+            let course = 0;
+            animationInterval = setInterval(() => {
+                const heading = course + Math.sin(Date.now() / 1000) * 10; // Slight course corrections
+                const cog = course + 5; // Slight current set
+                const sog = 8 + Math.sin(Date.now() / 2000) * 2; // Variable speed
+                const windDirection = 180 + Math.sin(Date.now() / 3000) * 30; // Variable wind
+                const windSpeed = 12 + Math.sin(Date.now() / 4000) * 5; // Variable wind speed
+                
+                course = (course + 0.5) % 360; // Gradual course change
+                
+                updateAllGauges(heading, cog, sog, windDirection, windSpeed);
+                
+                // Update sliders to reflect current values
+                document.getElementById('heading-slider').value = heading;
+                document.getElementById('cog-slider').value = cog;
+                document.getElementById('sog-slider').value = sog;
+                document.getElementById('wind-direction-slider').value = windDirection;
+                document.getElementById('wind-speed-slider').value = windSpeed;
+            }, 200);
+        };
+
+        window.simulateManeuvers = () => {
+            stopAnimation();
+            updateStatus('Simulating ship maneuvers...');
+            
+            const maneuvers = [
+                { heading: 0, cog: 5, sog: 8 },
+                { heading: 45, cog: 50, sog: 6 },
+                { heading: 90, cog: 95, sog: 10 },
+                { heading: 180, cog: 175, sog: 12 },
+                { heading: 270, cog: 275, sog: 8 },
+                { heading: 315, cog: 320, sog: 6 }
+            ];
+            
+            let maneuverIndex = 0;
+            animationInterval = setInterval(() => {
+                const maneuver = maneuvers[maneuverIndex];
+                const windDirection = 90 + Math.random() * 180;
+                const windSpeed = 8 + Math.random() * 10;
+                
+                updateAllGauges(maneuver.heading, maneuver.cog, maneuver.sog, windDirection, windSpeed);
+                
+                // Update sliders
+                document.getElementById('heading-slider').value = maneuver.heading;
+                document.getElementById('cog-slider').value = maneuver.cog;
+                document.getElementById('sog-slider').value = maneuver.sog;
+                document.getElementById('wind-direction-slider').value = windDirection;
+                document.getElementById('wind-speed-slider').value = windSpeed;
+                
+                maneuverIndex = (maneuverIndex + 1) % maneuvers.length;
+            }, 2000);
+        };
+
+        window.simulateWeatherChange = () => {
+            stopAnimation();
+            updateStatus('Simulating changing weather conditions...');
+            
+            const baseHeading = parseFloat(document.getElementById('heading-slider').value);
+            const baseCog = parseFloat(document.getElementById('cog-slider').value);
+            const baseSog = parseFloat(document.getElementById('sog-slider').value);
+            
+            animationInterval = setInterval(() => {
+                const windDirection = Math.random() * 360;
+                const windSpeed = Math.random() * 40;
+                
+                // Adjust heading and COG based on wind conditions
+                const windEffect = windSpeed > 20 ? 15 : 5;
+                const heading = baseHeading + (Math.random() - 0.5) * windEffect;
+                const cog = baseCog + (Math.random() - 0.5) * windEffect * 2;
+                const sog = baseSog * (windSpeed > 25 ? 0.7 : 1.0); // Reduce speed in heavy weather
+                
+                updateAllGauges(heading, cog, sog, windDirection, windSpeed);
+                
+                // Update sliders
+                document.getElementById('heading-slider').value = heading;
+                document.getElementById('cog-slider').value = cog;
+                document.getElementById('sog-slider').value = sog;
+                document.getElementById('wind-direction-slider').value = windDirection;
+                document.getElementById('wind-speed-slider').value = windSpeed;
+            }, 500);
+        };
+
+        window.stopAnimation = () => {
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+                updateStatus('Animation stopped');
+            }
+        };
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeGauges();
+            updateStatus('Ship gauge demo loaded. Try the controls and scenarios!');
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            stopAnimation();
+            Object.values(gauges).forEach(gauge => {
+                if (gauge && gauge.destroy) {
+                    gauge.destroy();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

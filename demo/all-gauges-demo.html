@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Gauges Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .gauge-section {
+            margin-bottom: 40px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #7dd3fc;
+        }
+
+        .gauge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .gauge-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gauge-title {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1em;
+            color: #bfdbfe;
+        }
+
+        .gauge-display {
+            height: 200px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
+        }
+
+        .gauge-value {
+            text-align: center;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 0.9em;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            font-family: monospace;
+            text-align: left;
+        }
+
+        .metadata-display {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .skin-selector {
+            margin: 10px 0;
+        }
+
+        select {
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎛️ Complete Gauge System Demo</h1>
+        
+        <!-- Speedometer Section -->
+        <div class="gauge-section">
+            <div class="section-title">🚗 Speedometer Gauges</div>
+            <div class="gauge-grid" id="speedometer-grid">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="skin-selector">
+                Skin: <select id="speedometer-skin">
+                    <option value="default">Default</option>
+                    <option value="minimal">Minimal</option>
+                    <option value="bar">Bar</option>
+                    <option value="number">Number</option>
+                </select>
+                Speed: <span id="speed-display">0</span> km/h
+            </div>
+        </div>
+
+        <!-- Compass Section -->
+        <div class="gauge-section">
+            <div class="section-title">🧭 Compass Gauges</div>
+            <div class="gauge-grid" id="compass-grid">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="skin-selector">
+                Skin: <select id="compass-skin">
+                    <option value="default">Default</option>
+                    <option value="minimal">Minimal</option>
+                    <option value="horizontal-bar">Horizontal Bar</option>
+                </select>
+                Heading: <span id="heading-display">0</span>°
+            </div>
+        </div>
+
+        <!-- Wind Section -->
+        <div class="gauge-section">
+            <div class="section-title">💨 Wind Gauges</div>
+            <div class="gauge-grid" id="wind-grid">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="skin-selector">
+                Skin: <select id="wind-skin">
+                    <option value="default">Default</option>
+                    <option value="horizontal-bar">Horizontal Bar</option>
+                </select>
+                Wind: <span id="wind-display">0 knots @ 0°</span>
+            </div>
+        </div>
+
+        <!-- Trend Section -->
+        <div class="gauge-section">
+            <div class="section-title">📈 Trend Gauges</div>
+            <div class="gauge-grid" id="trend-grid">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="skin-selector">
+                Skin: <select id="trend-skin">
+                    <option value="arrow-indicator">Arrow Indicator</option>
+                    <option value="bar-indicator">Bar Indicator</option>
+                </select>
+                Trend: <span id="trend-display">0.00</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>🎮 Demo Controls</h3>
+            
+            <div class="control-row">
+                <button onclick="startRealisticDemo()">🌟 Realistic Vehicle Demo</button>
+                <button onclick="startRandomDemo()">🎲 Random Values</button>
+                <button onclick="startSynchronizedDemo()">🔄 Synchronized Demo</button>
+                <button onclick="stopAllAnimations()">⏹️ Stop All</button>
+            </div>
+            
+            <div class="control-row">
+                <button onclick="showMetadata()">📊 Show Metadata</button>
+                <button onclick="testAllSkins()">🎨 Cycle All Skins</button>
+                <button onclick="stressTest()">⚡ Stress Test</button>
+            </div>
+            
+            <div class="metadata-display" id="metadata-display" style="display: none;">
+                <!-- Metadata will be shown here -->
+            </div>
+            
+            <div class="status" id="status">
+                System ready. All gauges initialized. Try the demo controls!
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { SpeedometerGauge } from '../dist/Gauges/Speedometer/index.js';
+        import { CompassGauge } from '../dist/Gauges/Compass/index.js';
+        import { WindGauge } from '../dist/Gauges/Wind/index.js';
+        import { TrendGauge } from '../dist/Gauges/trend/index.js';
+
+        let gauges = {
+            speedometer: null,
+            compass: null,
+            wind: null,
+            trend: null
+        };
+        
+        let animationInterval = null;
+        let currentValues = {
+            speed: 0,
+            heading: 0,
+            windSpeed: 0,
+            windDirection: 0,
+            trendValue: 50
+        };
+
+        // Initialize all gauge types
+        function initializeGauges() {
+            // Speedometer
+            createGaugeContainer('speedometer-grid', 'speedometer-1', 'Enhanced');
+            gauges.speedometer = new SpeedometerGauge(
+                document.getElementById('speedometer-1'),
+                { skin: 'default', autoRender: true, min: 0, max: 200, unit: 'km/h' }
+            );
+
+            // Compass
+            createGaugeContainer('compass-grid', 'compass-1', 'Default');
+            gauges.compass = new CompassGauge(
+                document.getElementById('compass-1'),
+                { skin: 'default', autoRender: true }
+            );
+
+            // Wind
+            createGaugeContainer('wind-grid', 'wind-1', 'Default');
+            gauges.wind = new WindGauge(
+                document.getElementById('wind-1'),
+                { skin: 'default', autoRender: true, unit: 'knots' }
+            );
+
+            // Trend
+            createGaugeContainer('trend-grid', 'trend-1', 'Arrow');
+            gauges.trend = new TrendGauge(
+                document.getElementById('trend-1'),
+                { skin: 'arrow-indicator', autoRender: true, bufferSize: 15 }
+            );
+
+            updateStatus('All gauge types initialized successfully');
+        }
+
+        function createGaugeContainer(gridId, gaugeId, title) {
+            const grid = document.getElementById(gridId);
+            const container = document.createElement('div');
+            container.className = 'gauge-container';
+            container.innerHTML = `
+                <div class="gauge-title">${title}</div>
+                <div id="${gaugeId}" class="gauge-display"></div>
+                <div class="gauge-value" id="${gaugeId}-value">--</div>
+            `;
+            grid.appendChild(container);
+        }
+
+        // Update all displays
+        function updateDisplays() {
+            document.getElementById('speed-display').textContent = Math.round(currentValues.speed);
+            document.getElementById('heading-display').textContent = Math.round(currentValues.heading);
+            document.getElementById('wind-display').textContent = 
+                `${Math.round(currentValues.windSpeed)} knots @ ${Math.round(currentValues.windDirection)}°`;
+            document.getElementById('trend-display').textContent = currentValues.trendValue.toFixed(2);
+
+            // Update individual gauge value displays
+            document.getElementById('speedometer-1-value').textContent = `${Math.round(currentValues.speed)} km/h`;
+            document.getElementById('compass-1-value').textContent = `${Math.round(currentValues.heading)}°`;
+            document.getElementById('wind-1-value').textContent = 
+                `${Math.round(currentValues.windSpeed)} kts, ${Math.round(currentValues.windDirection)}°`;
+            document.getElementById('trend-1-value').textContent = `Value: ${currentValues.trendValue.toFixed(1)}`;
+        }
+
+        // Realistic vehicle demo
+        window.startRealisticDemo = () => {
+            clearInterval(animationInterval);
+            updateStatus('Starting realistic vehicle demo...');
+            
+            let phase = 0; // 0: acceleration, 1: cruising, 2: turning, 3: deceleration
+            let phaseTime = 0;
+            
+            animationInterval = setInterval(() => {
+                phaseTime++;
+                
+                switch(phase) {
+                    case 0: // Acceleration
+                        currentValues.speed += 2 + Math.random() * 2;
+                        currentValues.heading += (Math.random() - 0.5) * 2; // Slight drift
+                        currentValues.windSpeed = Math.max(0, currentValues.speed * 0.6 + (Math.random() - 0.5) * 5);
+                        currentValues.windDirection = (currentValues.heading + 180 + (Math.random() - 0.5) * 30) % 360;
+                        
+                        if (phaseTime > 20 || currentValues.speed > 80) {
+                            phase = 1;
+                            phaseTime = 0;
+                        }
+                        break;
+                        
+                    case 1: // Cruising
+                        currentValues.speed += (Math.random() - 0.5) * 1;
+                        currentValues.heading += (Math.random() - 0.5) * 1;
+                        currentValues.windSpeed = Math.max(0, currentValues.speed * 0.6 + (Math.random() - 0.5) * 3);
+                        currentValues.windDirection = (currentValues.heading + 180 + (Math.random() - 0.5) * 20) % 360;
+                        
+                        if (phaseTime > 30) {
+                            phase = 2;
+                            phaseTime = 0;
+                        }
+                        break;
+                        
+                    case 2: // Turning
+                        currentValues.speed = Math.max(30, currentValues.speed - 1);
+                        currentValues.heading += 3; // Steady turn
+                        currentValues.windSpeed = Math.max(0, currentValues.speed * 0.6 + (Math.random() - 0.5) * 4);
+                        currentValues.windDirection = (currentValues.heading + 180 + (Math.random() - 0.5) * 25) % 360;
+                        
+                        if (phaseTime > 25) {
+                            phase = 3;
+                            phaseTime = 0;
+                        }
+                        break;
+                        
+                    case 3: // Deceleration
+                        currentValues.speed = Math.max(0, currentValues.speed - 3);
+                        currentValues.heading += (Math.random() - 0.5) * 1;
+                        currentValues.windSpeed = Math.max(0, currentValues.speed * 0.6);
+                        currentValues.windDirection = (currentValues.heading + 180 + (Math.random() - 0.5) * 15) % 360;
+                        
+                        if (phaseTime > 20 || currentValues.speed < 5) {
+                            phase = 0;
+                            phaseTime = 0;
+                            updateStatus('Realistic demo cycle complete, restarting...');
+                        }
+                        break;
+                }
+                
+                // Ensure values are in valid ranges
+                currentValues.speed = Math.max(0, Math.min(200, currentValues.speed));
+                currentValues.heading = ((currentValues.heading % 360) + 360) % 360;
+                currentValues.windSpeed = Math.max(0, Math.min(50, currentValues.windSpeed));
+                currentValues.windDirection = ((currentValues.windDirection % 360) + 360) % 360;
+                currentValues.trendValue += (Math.random() - 0.5) * 2;
+                currentValues.trendValue = Math.max(0, Math.min(100, currentValues.trendValue));
+                
+                updateGauges();
+                updateDisplays();
+            }, 200);
+        };
+
+        // Random values demo
+        window.startRandomDemo = () => {
+            clearInterval(animationInterval);
+            updateStatus('Starting random values demo...');
+            
+            animationInterval = setInterval(() => {
+                currentValues.speed = Math.random() * 200;
+                currentValues.heading = Math.random() * 360;
+                currentValues.windSpeed = Math.random() * 50;
+                currentValues.windDirection = Math.random() * 360;
+                currentValues.trendValue = Math.random() * 100;
+                
+                updateGauges();
+                updateDisplays();
+            }, 500);
+        };
+
+        // Synchronized demo
+        window.startSynchronizedDemo = () => {
+            clearInterval(animationInterval);
+            updateStatus('Starting synchronized demo...');
+            
+            let time = 0;
+            animationInterval = setInterval(() => {
+                time += 0.1;
+                
+                // Sinusoidal patterns for smooth animation
+                currentValues.speed = 50 + 50 * Math.sin(time);
+                currentValues.heading = 180 + 90 * Math.sin(time * 0.5);
+                currentValues.windSpeed = 15 + 10 * Math.sin(time * 0.7);
+                currentValues.windDirection = 270 + 60 * Math.sin(time * 0.3);
+                currentValues.trendValue = 50 + 30 * Math.sin(time * 0.2);
+                
+                updateGauges();
+                updateDisplays();
+            }, 100);
+        };
+
+        // Update all gauges with current values
+        function updateGauges() {
+            if (gauges.speedometer) {
+                gauges.speedometer.setData({ value: currentValues.speed });
+            }
+            if (gauges.compass) {
+                gauges.compass.setData({ heading: currentValues.heading });
+            }
+            if (gauges.wind) {
+                gauges.wind.setData({ 
+                    speed: currentValues.windSpeed, 
+                    direction: currentValues.windDirection 
+                });
+            }
+            if (gauges.trend) {
+                gauges.trend.setData({ value: currentValues.trendValue });
+            }
+        }
+
+        // Stop all animations
+        window.stopAllAnimations = () => {
+            clearInterval(animationInterval);
+            updateStatus('All animations stopped');
+        };
+
+        // Show metadata for all gauges
+        window.showMetadata = () => {
+            const metadataDiv = document.getElementById('metadata-display');
+            let html = '<h4>Gauge System Metadata:</h4>';
+            
+            Object.entries(gauges).forEach(([type, gauge]) => {
+                if (gauge && gauge.getMetadata) {
+                    const metadata = gauge.getMetadata();
+                    html += `
+                        <div style="margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                            <strong>${metadata.type.toUpperCase()}</strong><br>
+                            Description: ${metadata.description}<br>
+                            Animated Properties: ${metadata.animatedProperties.join(', ')}<br>
+                            Available Skins: ${metadata.availableSkins.join(', ')}
+                        </div>
+                    `;
+                }
+            });
+            
+            metadataDiv.innerHTML = html;
+            metadataDiv.style.display = metadataDiv.style.display === 'none' ? 'block' : 'none';
+        };
+
+        // Test all skins
+        window.testAllSkins = () => {
+            updateStatus('Cycling through all available skins...');
+            
+            const skinTests = [
+                { gauge: gauges.speedometer, skins: ['default', 'minimal', 'bar', 'number'] },
+                { gauge: gauges.compass, skins: ['default', 'minimal', 'horizontal-bar'] },
+                { gauge: gauges.wind, skins: ['default', 'horizontal-bar'] },
+                { gauge: gauges.trend, skins: ['arrow-indicator', 'bar-indicator'] }
+            ];
+            
+            let testIndex = 0;
+            const testInterval = setInterval(() => {
+                const test = skinTests[testIndex % skinTests.length];
+                const skinIndex = Math.floor(testIndex / skinTests.length) % test.skins.length;
+                const skin = test.skins[skinIndex];
+                
+                if (test.gauge && test.gauge.setSkin) {
+                    test.gauge.setSkin(skin);
+                    updateStatus(`Testing skin: ${skin} on ${test.gauge.constructor.name}`);
+                }
+                
+                testIndex++;
+                if (testIndex >= skinTests.length * 4) {
+                    clearInterval(testInterval);
+                    updateStatus('Skin testing complete');
+                }
+            }, 1000);
+        };
+
+        // Stress test
+        window.stressTest = () => {
+            clearInterval(animationInterval);
+            updateStatus('Starting stress test - rapid updates...');
+            
+            animationInterval = setInterval(() => {
+                currentValues.speed = Math.random() * 200;
+                currentValues.heading = Math.random() * 360;
+                currentValues.windSpeed = Math.random() * 50;
+                currentValues.windDirection = Math.random() * 360;
+                currentValues.trendValue = Math.random() * 100;
+                
+                updateGauges();
+                updateDisplays();
+            }, 50); // Very fast updates
+            
+            setTimeout(() => {
+                clearInterval(animationInterval);
+                updateStatus('Stress test complete');
+            }, 10000);
+        };
+
+        // Skin change handlers
+        document.getElementById('speedometer-skin').addEventListener('change', (e) => {
+            if (gauges.speedometer) {
+                gauges.speedometer.setSkin(e.target.value);
+            }
+        });
+
+        document.getElementById('compass-skin').addEventListener('change', (e) => {
+            if (gauges.compass) {
+                gauges.compass.setSkin(e.target.value);
+            }
+        });
+
+        document.getElementById('wind-skin').addEventListener('change', (e) => {
+            if (gauges.wind) {
+                gauges.wind.setSkin(e.target.value);
+            }
+        });
+
+        document.getElementById('trend-skin').addEventListener('change', (e) => {
+            if (gauges.trend) {
+                gauges.trend.setSkin(e.target.value);
+            }
+        });
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeGauges();
+            updateDisplays();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(animationInterval);
+            Object.values(gauges).forEach(gauge => {
+                if (gauge && gauge.destroy) {
+                    gauge.destroy();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

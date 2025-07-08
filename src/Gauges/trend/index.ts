@@ -21,6 +21,8 @@ export interface TrendGaugeOptions extends GaugeOptions {
 
 export class TrendGauge extends GaugeBase {
   protected options: Required<TrendGaugeOptions>;
+  protected gaugeType = "trend";
+  protected animatedProperties = ["trend", "trendStrength"];
   private valueBuffer: number[] = [];
   
   constructor(parentElement: HTMLElement, options: TrendGaugeOptions = {}) {
@@ -231,7 +233,11 @@ export class TrendGauge extends GaugeBase {
     ctx.font = `${height * 0.1}px Arial`;
     ctx.fillText(`Trend: ${trend.toFixed(4)}`, width / 2, height * 0.75);
   }
+  
+  protected getDescription(): string {
+    return "A trend gauge that displays directional trends using arrows or bars based on historical data";
+  }
 }
 
-TrendGauge.registerSkin("trend-arrow-indicator", ArrowIndicator);
-TrendGauge.registerSkin("trend-bar-indicator", BarIndicator);
+TrendGauge.registerSkin("trend", "arrow-indicator", ArrowIndicator);
+TrendGauge.registerSkin("trend", "bar-indicator", BarIndicator);

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speedometer Gauge Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .gauge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .gauge-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .gauge-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            color: #7dd3fc;
+        }
+
+        .gauge-display {
+            height: 250px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
+        }
+
+        .gauge-info {
+            text-align: center;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .control-group {
+            margin: 10px 0;
+        }
+
+        .control-group label {
+            display: inline-block;
+            width: 120px;
+            text-align: left;
+            margin-right: 10px;
+        }
+
+        input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Speedometer Gauge Demo</h1>
+        
+        <div class="gauge-grid">
+            <div class="gauge-container">
+                <div class="gauge-title">Default Speedometer</div>
+                <div id="speedometer-default" class="gauge-display"></div>
+                <div class="gauge-info">Enhanced circular design with arc and needle</div>
+            </div>
+            
+            <div class="gauge-container">
+                <div class="gauge-title">Minimal Speedometer</div>
+                <div id="speedometer-minimal" class="gauge-display"></div>
+                <div class="gauge-info">Clean arc-only design</div>
+            </div>
+            
+            <div class="gauge-container">
+                <div class="gauge-title">Bar Speedometer</div>
+                <div id="speedometer-bar" class="gauge-display"></div>
+                <div class="gauge-info">Horizontal/vertical bar style</div>
+            </div>
+            
+            <div class="gauge-container">
+                <div class="gauge-title">Number Display</div>
+                <div id="speedometer-number" class="gauge-display"></div>
+                <div class="gauge-info">LED-style numeric display</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>Controls</h3>
+            <div class="control-group">
+                <label>Speed Value:</label>
+                <input type="range" id="speed-slider" min="0" max="180" value="0" step="1">
+                <span id="speed-value">0</span> km/h
+            </div>
+            
+            <div class="control-group">
+                <button onclick="simulateAcceleration()">🚀 Simulate Acceleration</button>
+                <button onclick="simulateDeceleration()">🛑 Simulate Braking</button>
+                <button onclick="randomAnimation()">🎲 Random Animation</button>
+                <button onclick="toggleVertical()">🔄 Toggle Vertical (Bar)</button>
+            </div>
+            
+            <div class="status" id="status">
+                Ready. Use controls to test the speedometer gauges.
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { SpeedometerGauge } from '../dist/Gauges/Speedometer/index.js';
+
+        let gauges = {};
+        let isVertical = false;
+        let animationInterval = null;
+
+        // Initialize all gauges
+        function initializeGauges() {
+            const configs = [
+                { id: 'speedometer-default', skin: 'default' },
+                { id: 'speedometer-minimal', skin: 'minimal' },
+                { id: 'speedometer-bar', skin: 'bar' },
+                { id: 'speedometer-number', skin: 'number' }
+            ];
+
+            configs.forEach(config => {
+                const container = document.getElementById(config.id);
+                if (container) {
+                    // Clean up existing gauge
+                    if (gauges[config.id]) {
+                        gauges[config.id].destroy();
+                    }
+                    
+                    gauges[config.id] = new SpeedometerGauge(container, {
+                        min: 0,
+                        max: 180,
+                        skin: config.skin,
+                        unit: 'km/h',
+                        vertical: config.id === 'speedometer-bar' ? isVertical : false,
+                        decimals: 0,
+                        autoRender: true
+                    });
+                    
+                    // Explicitly set the skin to ensure it's applied
+                    gauges[config.id].setSkin(config.skin);
+                }
+            });
+
+            updateStatus('All gauges initialized');
+        }
+
+        // Update all gauges with the same value
+        function updateAllGauges(value) {
+            Object.values(gauges).forEach(gauge => {
+                if (gauge) {
+                    gauge.setData({ value: value });
+                }
+            });
+            document.getElementById('speed-value').textContent = Math.round(value);
+        }
+
+        // Speed slider control
+        document.getElementById('speed-slider').addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            updateAllGauges(value);
+            updateStatus(`Manual speed set to ${Math.round(value)} km/h`);
+        });
+
+        // Simulate acceleration
+        window.simulateAcceleration = () => {
+            clearInterval(animationInterval);
+            let speed = 0;
+            updateStatus('Simulating acceleration...');
+            
+            animationInterval = setInterval(() => {
+                speed += Math.random() * 8 + 2; // Random acceleration 2-10 km/h per step
+                if (speed >= 180) {
+                    speed = 180;
+                    clearInterval(animationInterval);
+                    updateStatus('Max speed reached!');
+                }
+                updateAllGauges(speed);
+                document.getElementById('speed-slider').value = speed;
+            }, 100);
+        };
+
+        // Simulate deceleration
+        window.simulateDeceleration = () => {
+            clearInterval(animationInterval);
+            let speed = parseFloat(document.getElementById('speed-slider').value);
+            updateStatus('Simulating braking...');
+            
+            animationInterval = setInterval(() => {
+                speed -= Math.random() * 6 + 3; // Random deceleration 3-9 km/h per step
+                if (speed <= 0) {
+                    speed = 0;
+                    clearInterval(animationInterval);
+                    updateStatus('Stopped');
+                }
+                updateAllGauges(speed);
+                document.getElementById('speed-slider').value = speed;
+            }, 80);
+        };
+
+        // Random animation
+        window.randomAnimation = () => {
+            clearInterval(animationInterval);
+            updateStatus('Random speed animation running...');
+            
+            animationInterval = setInterval(() => {
+                const randomSpeed = Math.random() * 180;
+                updateAllGauges(randomSpeed);
+                document.getElementById('speed-slider').value = randomSpeed;
+            }, 300);
+            
+            // Stop after 10 seconds
+            setTimeout(() => {
+                clearInterval(animationInterval);
+                updateStatus('Random animation stopped');
+            }, 10000);
+        };
+
+        // Toggle vertical mode for bar gauge
+        window.toggleVertical = () => {
+            isVertical = !isVertical;
+            initializeGauges(); // Reinitialize with new orientation
+            const currentValue = parseFloat(document.getElementById('speed-slider').value);
+            updateAllGauges(currentValue);
+            updateStatus(`Bar gauge orientation: ${isVertical ? 'Vertical' : 'Horizontal'}`);
+        };
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeGauges();
+            updateStatus('Demo loaded. Try the controls!');
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(animationInterval);
+            Object.values(gauges).forEach(gauge => {
+                if (gauge && gauge.destroy) {
+                    gauge.destroy();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

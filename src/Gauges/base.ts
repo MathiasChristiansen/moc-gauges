@@ -12,6 +12,13 @@ export type SkinRenderFunction<TOptions> = (
   parentElement: HTMLElement
 ) => void;
 
+export interface GaugeMetadata {
+  type: string;
+  availableSkins: string[];
+  animatedProperties: string[];
+  description?: string;
+}
+
 export abstract class GaugeBase {
   protected canvas: HTMLCanvasElement;
   protected ctx: CanvasRenderingContext2D;
@@ -24,8 +31,13 @@ export abstract class GaugeBase {
 
   private animationFrameId: number | null = null;
 
-  public static skins: Record<string, SkinRenderFunction<any>> = {};
+  // Class-level skin registry - each subclass will have its own
+  private static skinRegistries: Map<string, Record<string, SkinRenderFunction<any>>> = new Map();
   private renderFunction: SkinRenderFunction<any>;
+
+  // Abstract properties that subclasses must define
+  protected abstract gaugeType: string;
+  protected abstract animatedProperties: string[];
 
   constructor(parentElement: HTMLElement, options: GaugeOptions = {}) {
     this.parentElement = parentElement;
@@ -57,7 +69,7 @@ export abstract class GaugeBase {
     this.init();
 
     this.renderFunction =
-      GaugeBase.skins[this.options.skin] ?? this.defaultRender;
+      (this.getSkin(this.options.skin) ?? this.defaultRender.bind(this)) as SkinRenderFunction<any>;
 
     if (this.options.autoRender) {
       this.animate();
@@ -145,20 +157,44 @@ export abstract class GaugeBase {
   ): void;
 
   public static registerSkin<TOptions>(
+    gaugeType: string,
     name: string,
     renderFunction: SkinRenderFunction<TOptions>
   ): void {
-    GaugeBase.skins[name] = renderFunction as SkinRenderFunction<any>;
+    if (!GaugeBase.skinRegistries.has(gaugeType)) {
+      GaugeBase.skinRegistries.set(gaugeType, {});
+    }
+    const registry = GaugeBase.skinRegistries.get(gaugeType)!;
+    registry[name] = renderFunction as SkinRenderFunction<any>;
+  }
+
+  public static getAvailableSkins(gaugeType: string): string[] {
+    const registry = GaugeBase.skinRegistries.get(gaugeType);
+    return registry ? Object.keys(registry) : [];
+  }
+
+  private getSkin(skinName: string): SkinRenderFunction<any> | null {
+    const registry = GaugeBase.skinRegistries.get(this.gaugeType);
+    return registry ? registry[skinName] : null;
   }
 
   public setSkin(skin: string): void {
-    const newRenderFunction = GaugeBase.skins[skin];
+    const newRenderFunction = this.getSkin(skin);
+    this.renderFunction = (newRenderFunction ?? this.defaultRender.bind(this)) as SkinRenderFunction<any>;
+    this.options.skin = skin;
+  }
 
-    // if (!newRenderFunction) {
-    //   throw new Error(`Skin not found: ${skin}`);
-    // }
+  public getMetadata(): GaugeMetadata {
+    return {
+      type: this.gaugeType,
+      availableSkins: GaugeBase.getAvailableSkins(this.gaugeType),
+      animatedProperties: this.animatedProperties,
+      description: this.getDescription()
+    };
+  }
 
-    this.renderFunction = newRenderFunction ?? this.defaultRender;
+  protected getDescription(): string | undefined {
+    return undefined; // Subclasses can override
   }
 
   public destroy(): void {

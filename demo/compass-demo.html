@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compass Gauge Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .gauge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .gauge-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .gauge-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            color: #7dd3fc;
+        }
+
+        .gauge-display {
+            height: 250px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
+        }
+
+        .gauge-info {
+            text-align: center;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .control-group {
+            margin: 10px 0;
+        }
+
+        .control-group label {
+            display: inline-block;
+            width: 120px;
+            text-align: left;
+            margin-right: 10px;
+        }
+
+        input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            font-family: monospace;
+        }
+
+        .direction-display {
+            text-align: center;
+            font-size: 1.5em;
+            margin: 10px 0;
+            color: #60a5fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧭 Compass Gauge Demo</h1>
+        
+        <div class="gauge-grid">
+            <div class="gauge-container">
+                <div class="gauge-title">Default Compass</div>
+                <div id="compass-default" class="gauge-display"></div>
+                <div class="gauge-info">Arrow design with degree markings</div>
+            </div>
+            
+            <div class="gauge-container">
+                <div class="gauge-title">Minimal Compass</div>
+                <div id="compass-minimal" class="gauge-display"></div>
+                <div class="gauge-info">Clean circular design with needle</div>
+            </div>
+            
+            <div class="gauge-container">
+                <div class="gauge-title">Horizontal Bar</div>
+                <div id="compass-horizontal" class="gauge-display"></div>
+                <div class="gauge-info">Linear bar representation</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>Navigation Controls</h3>
+            
+            <div class="direction-display">
+                <div>Heading: <span id="heading-value">0</span>°</div>
+                <div>Direction: <span id="direction-name">N</span></div>
+            </div>
+            
+            <div class="control-group">
+                <label>Heading:</label>
+                <input type="range" id="heading-slider" min="0" max="359" value="0" step="1">
+                <span id="heading-degrees">0</span>°
+            </div>
+            
+            <div class="control-group">
+                <button onclick="setDirection('N')">🧭 North (0°)</button>
+                <button onclick="setDirection('E')">➡️ East (90°)</button>
+                <button onclick="setDirection('S')">⬇️ South (180°)</button>
+                <button onclick="setDirection('W')">⬅️ West (270°)</button>
+            </div>
+            
+            <div class="control-group">
+                <button onclick="simulateNavigation()">🚢 Simulate Navigation</button>
+                <button onclick="spinCompass()">🌀 Spin Compass</button>
+                <button onclick="randomWalk()">🚶 Random Walk</button>
+                <button onclick="stopAnimation()">⏹️ Stop</button>
+            </div>
+            
+            <div class="status" id="status">
+                Ready. Use controls to test the compass gauges.
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { CompassGauge } from '../dist/Gauges/Compass/index.js';
+
+        let gauges = {};
+        let animationInterval = null;
+
+        // Direction names for compass headings
+        const directionNames = [
+            'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+            'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'
+        ];
+
+        function getDirectionName(degrees) {
+            const index = Math.round(degrees / 22.5) % 16;
+            return directionNames[index];
+        }
+
+        // Initialize all gauges
+        function initializeGauges() {
+            const configs = [
+                { id: 'compass-default', skin: 'default' },
+                { id: 'compass-minimal', skin: 'minimal' },
+                { id: 'compass-horizontal', skin: 'horizontal-bar' }
+            ];
+
+            configs.forEach(config => {
+                const container = document.getElementById(config.id);
+                if (container) {
+                    // Clean up existing gauge
+                    if (gauges[config.id]) {
+                        gauges[config.id].destroy();
+                    }
+                    
+                    gauges[config.id] = new CompassGauge(container, {
+                        skin: config.skin,
+                        autoRender: true,
+                        needleColor: '#ff4444',
+                        textColor: '#ffffff',
+                        fontSize: 14
+                    });
+                    
+                    // Explicitly set the skin to ensure it's applied
+                    gauges[config.id].setSkin(config.skin);
+                }
+            });
+
+            updateStatus('All compass gauges initialized');
+        }
+
+        // Update all gauges with the same heading
+        function updateAllGauges(heading) {
+            // Ensure heading is in 0-359 range
+            heading = ((heading % 360) + 360) % 360;
+            
+            Object.values(gauges).forEach(gauge => {
+                if (gauge) {
+                    gauge.setData({ heading: heading });
+                }
+            });
+            
+            document.getElementById('heading-value').textContent = Math.round(heading);
+            document.getElementById('heading-degrees').textContent = Math.round(heading);
+            document.getElementById('direction-name').textContent = getDirectionName(heading);
+        }
+
+        // Heading slider control
+        document.getElementById('heading-slider').addEventListener('input', (e) => {
+            const heading = parseFloat(e.target.value);
+            updateAllGauges(heading);
+            updateStatus(`Manual heading set to ${Math.round(heading)}° (${getDirectionName(heading)})`);
+        });
+
+        // Set specific direction
+        window.setDirection = (direction) => {
+            const headings = { 'N': 0, 'E': 90, 'S': 180, 'W': 270 };
+            const heading = headings[direction];
+            updateAllGauges(heading);
+            document.getElementById('heading-slider').value = heading;
+            updateStatus(`Heading set to ${direction} (${heading}°)`);
+        };
+
+        // Simulate navigation with gradual turns
+        window.simulateNavigation = () => {
+            clearInterval(animationInterval);
+            let currentHeading = parseFloat(document.getElementById('heading-slider').value);
+            const waypoints = [45, 120, 200, 315, 0]; // Navigation waypoints
+            let waypointIndex = 0;
+            
+            updateStatus('Simulating navigation route...');
+            
+            animationInterval = setInterval(() => {
+                const targetHeading = waypoints[waypointIndex];
+                let diff = targetHeading - currentHeading;
+                
+                // Handle 360-degree wrap-around
+                if (diff > 180) diff -= 360;
+                if (diff < -180) diff += 360;
+                
+                if (Math.abs(diff) < 2) {
+                    waypointIndex = (waypointIndex + 1) % waypoints.length;
+                    updateStatus(`Reached waypoint ${waypointIndex + 1}. Next: ${waypoints[waypointIndex]}°`);
+                } else {
+                    currentHeading += diff * 0.05; // Gradual turn
+                }
+                
+                currentHeading = ((currentHeading % 360) + 360) % 360;
+                updateAllGauges(currentHeading);
+                document.getElementById('heading-slider').value = currentHeading;
+            }, 50);
+        };
+
+        // Spin compass continuously
+        window.spinCompass = () => {
+            clearInterval(animationInterval);
+            let heading = parseFloat(document.getElementById('heading-slider').value);
+            updateStatus('Spinning compass...');
+            
+            animationInterval = setInterval(() => {
+                heading += 3; // 3 degrees per step
+                updateAllGauges(heading);
+                document.getElementById('heading-slider').value = heading % 360;
+            }, 50);
+        };
+
+        // Random walk simulation
+        window.randomWalk = () => {
+            clearInterval(animationInterval);
+            let heading = parseFloat(document.getElementById('heading-slider').value);
+            updateStatus('Random heading changes...');
+            
+            animationInterval = setInterval(() => {
+                // Random turn between -10 and +10 degrees
+                heading += (Math.random() - 0.5) * 20;
+                heading = ((heading % 360) + 360) % 360;
+                
+                updateAllGauges(heading);
+                document.getElementById('heading-slider').value = heading;
+            }, 200);
+        };
+
+        // Stop all animations
+        window.stopAnimation = () => {
+            clearInterval(animationInterval);
+            updateStatus('Animation stopped');
+        };
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeGauges();
+            updateStatus('Compass demo loaded. Set your heading!');
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(animationInterval);
+            Object.values(gauges).forEach(gauge => {
+                if (gauge && gauge.destroy) {
+                    gauge.destroy();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

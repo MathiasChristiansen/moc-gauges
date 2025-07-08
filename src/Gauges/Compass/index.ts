@@ -14,6 +14,8 @@ export interface CompassOptions extends GaugeOptions {
 
 export class CompassGauge extends GaugeBase {
   protected options: Required<CompassOptions>;
+  protected gaugeType = "compass";
+  protected animatedProperties = ["heading"];
 
   constructor(parentElement: HTMLElement, options: CompassOptions = {}) {
     super(parentElement, {
@@ -176,8 +178,12 @@ export class CompassGauge extends GaugeBase {
     // Smoothly update animation state
     this.animationState.heading = animatedHeading + difference * easingFactor;
   }
+
+  protected getDescription(): string {
+    return "A compass gauge that displays heading/direction with 0-360 degree range";
+  }
 }
 
-CompassGauge.registerSkin("compass-default", FuturisticCompassArrow);
-CompassGauge.registerSkin("compass-minimal", FuturisticCompass);
-CompassGauge.registerSkin("compass-horizontal-bar", HorizontalBarCompass);
+CompassGauge.registerSkin("compass", "default", FuturisticCompassArrow);
+CompassGauge.registerSkin("compass", "minimal", FuturisticCompass);
+CompassGauge.registerSkin("compass", "horizontal-bar", HorizontalBarCompass);

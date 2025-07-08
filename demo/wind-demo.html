@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wind Gauge Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .gauge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .gauge-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .gauge-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            color: #7dd3fc;
+        }
+
+        .gauge-display {
+            height: 250px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
+        }
+
+        .gauge-info {
+            text-align: center;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .control-group {
+            margin: 10px 0;
+        }
+
+        .control-group label {
+            display: inline-block;
+            width: 120px;
+            text-align: left;
+            margin-right: 10px;
+        }
+
+        input[type="range"] {
+            width: 200px;
+            margin: 0 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            font-family: monospace;
+        }
+
+        .wind-display {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 10px 0;
+            color: #60a5fa;
+        }
+
+        .wind-description {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💨 Wind Gauge Demo</h1>
+        
+        <div class="gauge-grid">
+            <div class="gauge-container">
+                <div class="gauge-title">Default Wind Gauge</div>
+                <div id="wind-default" class="gauge-display"></div>
+                <div class="gauge-info">Circular design with wind arrow and speed</div>
+            </div>
+            
+            <div class="gauge-container">
+                <div class="gauge-title">Horizontal Bar</div>
+                <div id="wind-horizontal" class="gauge-display"></div>
+                <div class="gauge-info">Linear bar showing direction</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>Wind Conditions</h3>
+            
+            <div class="wind-display">
+                <div>
+                    Speed: <span id="speed-value">0</span> knots | 
+                    Direction: <span id="direction-value">0</span>° (<span id="direction-name">N</span>)
+                </div>
+                <div class="wind-description" id="wind-description">Calm</div>
+            </div>
+            
+            <div class="control-group">
+                <label>Wind Speed:</label>
+                <input type="range" id="speed-slider" min="0" max="50" value="0" step="1">
+                <span id="speed-display">0</span> knots
+            </div>
+            
+            <div class="control-group">
+                <label>Wind Direction:</label>
+                <input type="range" id="direction-slider" min="0" max="359" value="0" step="1">
+                <span id="direction-display">0</span>°
+            </div>
+            
+            <div class="control-group">
+                <button onclick="setWindCondition('calm')">😴 Calm</button>
+                <button onclick="setWindCondition('breeze')">🍃 Light Breeze</button>
+                <button onclick="setWindCondition('moderate')">💨 Moderate Wind</button>
+                <button onclick="setWindCondition('strong')">🌪️ Strong Wind</button>
+            </div>
+            
+            <div class="control-group">
+                <button onclick="simulateStorm()">⛈️ Storm Simulation</button>
+                <button onclick="simulateVariableWind()">🌀 Variable Wind</button>
+                <button onclick="simulateWindShift()">↻ Wind Shift</button>
+                <button onclick="stopAnimation()">⏹️ Stop</button>
+            </div>
+            
+            <div class="status" id="status">
+                Ready. Adjust wind conditions to test the gauges.
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { WindGauge } from '../dist/Gauges/Wind/index.js';
+
+        let gauges = {};
+        let animationInterval = null;
+
+        // Direction names for wind
+        const directionNames = [
+            'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+            'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'
+        ];
+
+        // Beaufort wind scale descriptions
+        const windDescriptions = [
+            { min: 0, max: 1, desc: "Calm" },
+            { min: 1, max: 3, desc: "Light Air" },
+            { min: 4, max: 6, desc: "Light Breeze" },
+            { min: 7, max: 10, desc: "Gentle Breeze" },
+            { min: 11, max: 16, desc: "Moderate Breeze" },
+            { min: 17, max: 21, desc: "Fresh Breeze" },
+            { min: 22, max: 27, desc: "Strong Breeze" },
+            { min: 28, max: 33, desc: "Near Gale" },
+            { min: 34, max: 40, desc: "Gale" },
+            { min: 41, max: 47, desc: "Strong Gale" },
+            { min: 48, max: 55, desc: "Storm" }
+        ];
+
+        function getDirectionName(degrees) {
+            const index = Math.round(degrees / 22.5) % 16;
+            return directionNames[index];
+        }
+
+        function getWindDescription(speed) {
+            const description = windDescriptions.find(w => speed >= w.min && speed <= w.max);
+            return description ? description.desc : "Hurricane Force";
+        }
+
+        // Initialize all gauges
+        function initializeGauges() {
+            const configs = [
+                { id: 'wind-default', skin: 'default' },
+                { id: 'wind-horizontal', skin: 'horizontal-bar' }
+            ];
+
+            configs.forEach(config => {
+                const container = document.getElementById(config.id);
+                if (container) {
+                    // Clean up existing gauge
+                    if (gauges[config.id]) {
+                        gauges[config.id].destroy();
+                    }
+                    
+                    gauges[config.id] = new WindGauge(container, {
+                        skin: config.skin,
+                        autoRender: true,
+                        needleColor: '#4ade80',
+                        textColor: '#ffffff',
+                        fontSize: 12,
+                        unit: 'knots'
+                    });
+                    
+                    // Explicitly set the skin to ensure it's applied
+                    gauges[config.id].setSkin(config.skin);
+                }
+            });
+
+            updateStatus('All wind gauges initialized');
+        }
+
+        // Update all gauges
+        function updateAllGauges(speed, direction) {
+            // Ensure direction is in 0-359 range
+            direction = ((direction % 360) + 360) % 360;
+            
+            Object.values(gauges).forEach(gauge => {
+                if (gauge) {
+                    gauge.setData({ speed: speed, direction: direction });
+                }
+            });
+            
+            // Update displays
+            document.getElementById('speed-value').textContent = Math.round(speed);
+            document.getElementById('direction-value').textContent = Math.round(direction);
+            document.getElementById('direction-name').textContent = getDirectionName(direction);
+            document.getElementById('wind-description').textContent = getWindDescription(speed);
+            
+            document.getElementById('speed-display').textContent = Math.round(speed);
+            document.getElementById('direction-display').textContent = Math.round(direction);
+        }
+
+        // Speed slider control
+        document.getElementById('speed-slider').addEventListener('input', (e) => {
+            const speed = parseFloat(e.target.value);
+            const direction = parseFloat(document.getElementById('direction-slider').value);
+            updateAllGauges(speed, direction);
+            updateStatus(`Wind speed set to ${Math.round(speed)} knots`);
+        });
+
+        // Direction slider control
+        document.getElementById('direction-slider').addEventListener('input', (e) => {
+            const direction = parseFloat(e.target.value);
+            const speed = parseFloat(document.getElementById('speed-slider').value);
+            updateAllGauges(speed, direction);
+            updateStatus(`Wind direction set to ${Math.round(direction)}° (${getDirectionName(direction)})`);
+        });
+
+        // Set predefined wind conditions
+        window.setWindCondition = (condition) => {
+            clearInterval(animationInterval);
+            
+            const conditions = {
+                calm: { speed: 0, direction: 0 },
+                breeze: { speed: 8, direction: 225 }, // SW breeze
+                moderate: { speed: 18, direction: 270 }, // W wind
+                strong: { speed: 30, direction: 315 } // NW strong wind
+            };
+            
+            const windData = conditions[condition];
+            if (windData) {
+                updateAllGauges(windData.speed, windData.direction);
+                document.getElementById('speed-slider').value = windData.speed;
+                document.getElementById('direction-slider').value = windData.direction;
+                updateStatus(`Wind condition set to ${condition}: ${windData.speed} knots from ${getDirectionName(windData.direction)}`);
+            }
+        };
+
+        // Simulate storm with varying conditions
+        window.simulateStorm = () => {
+            clearInterval(animationInterval);
+            updateStatus('Simulating storm conditions...');
+            
+            animationInterval = setInterval(() => {
+                // Storm: high variable wind speed (25-45 knots) with shifting direction
+                const baseSpeed = 35;
+                const speed = baseSpeed + (Math.random() - 0.5) * 20;
+                const direction = (parseFloat(document.getElementById('direction-slider').value) + (Math.random() - 0.5) * 30) % 360;
+                
+                updateAllGauges(Math.max(0, speed), direction);
+                document.getElementById('speed-slider').value = Math.max(0, speed);
+                document.getElementById('direction-slider').value = direction;
+            }, 200);
+        };
+
+        // Simulate variable wind
+        window.simulateVariableWind = () => {
+            clearInterval(animationInterval);
+            updateStatus('Simulating variable wind...');
+            
+            animationInterval = setInterval(() => {
+                // Variable wind: speed 5-20 knots, direction changes slowly
+                const speed = 5 + Math.random() * 15;
+                const currentDir = parseFloat(document.getElementById('direction-slider').value);
+                const direction = (currentDir + (Math.random() - 0.5) * 10) % 360;
+                
+                updateAllGauges(speed, direction);
+                document.getElementById('speed-slider').value = speed;
+                document.getElementById('direction-slider').value = direction;
+            }, 500);
+        };
+
+        // Simulate wind shift
+        window.simulateWindShift = () => {
+            clearInterval(animationInterval);
+            let currentDirection = parseFloat(document.getElementById('direction-slider').value);
+            const targetDirection = (currentDirection + 180) % 360; // 180-degree shift
+            const speed = parseFloat(document.getElementById('speed-slider').value);
+            
+            updateStatus('Simulating wind shift...');
+            
+            animationInterval = setInterval(() => {
+                let diff = targetDirection - currentDirection;
+                if (diff > 180) diff -= 360;
+                if (diff < -180) diff += 360;
+                
+                if (Math.abs(diff) < 2) {
+                    clearInterval(animationInterval);
+                    updateStatus('Wind shift complete');
+                } else {
+                    currentDirection += diff * 0.05; // Gradual shift
+                    currentDirection = ((currentDirection % 360) + 360) % 360;
+                    
+                    updateAllGauges(speed, currentDirection);
+                    document.getElementById('direction-slider').value = currentDirection;
+                }
+            }, 50);
+        };
+
+        // Stop all animations
+        window.stopAnimation = () => {
+            clearInterval(animationInterval);
+            updateStatus('Animation stopped');
+        };
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeGauges();
+            updateStatus('Wind gauge demo loaded. Set wind conditions!');
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(animationInterval);
+            Object.values(gauges).forEach(gauge => {
+                if (gauge && gauge.destroy) {
+                    gauge.destroy();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

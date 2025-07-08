@@ -14,6 +14,8 @@ export interface WindGaugeOptions extends GaugeOptions {
 
 export class WindGauge extends GaugeBase {
   protected options: Required<WindGaugeOptions>;
+  protected gaugeType = "wind";
+  protected animatedProperties = ["direction", "speed"];
 
   constructor(parentElement: HTMLElement, options: WindGaugeOptions = {}) {
     super(parentElement, {
@@ -127,10 +129,11 @@ export class WindGauge extends GaugeBase {
       cy + fontSize * 2
     );
   }
+
+  protected getDescription(): string {
+    return "A wind gauge that displays both wind direction and speed";
+  }
 }
 
-WindGauge.registerSkin("wind-default", FuturisticWindArrow);
-WindGauge.registerSkin(
-  "wind-horizontal-bar",
-  HorizontalBarSpeedDirection
-);
+WindGauge.registerSkin("wind", "default", FuturisticWindArrow);
+WindGauge.registerSkin("wind", "horizontal-bar", HorizontalBarSpeedDirection);

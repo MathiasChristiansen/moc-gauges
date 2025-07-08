@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trend Gauge Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2d1b69, #11998e);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .gauge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .gauge-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .gauge-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            color: #7dd3fc;
+        }
+
+        .gauge-display {
+            height: 250px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
+        }
+
+        .gauge-info {
+            text-align: center;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .control-group {
+            margin: 10px 0;
+        }
+
+        .control-group label {
+            display: inline-block;
+            width: 120px;
+            text-align: left;
+            margin-right: 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            font-family: monospace;
+        }
+
+        .trend-display {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 10px 0;
+            color: #60a5fa;
+        }
+
+        .data-history {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .trend-indicators {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+        }
+
+        .trend-indicator {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .trend-up { background: rgba(0, 255, 0, 0.2); }
+        .trend-down { background: rgba(255, 0, 0, 0.2); }
+        .trend-stable { background: rgba(128, 128, 128, 0.2); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📈 Trend Gauge Demo</h1>
+        
+        <div class="gauge-grid">
+            <div class="gauge-container">
+                <div class="gauge-title">Arrow Trend Indicator</div>
+                <div id="trend-arrow" class="gauge-display"></div>
+                <div class="gauge-info">Shows trend direction with animated arrows</div>
+            </div>
+            
+            <div class="gauge-container">
+                <div class="gauge-title">Bar Trend Indicator</div>
+                <div id="trend-bar" class="gauge-display"></div>
+                <div class="gauge-info">Shows trend strength with LED-style bars</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>Trend Analysis</h3>
+            
+            <div class="trend-display">
+                <div>Current Value: <span id="current-value">0</span></div>
+                <div>Trend: <span id="trend-value">0.00</span></div>
+            </div>
+            
+            <div class="trend-indicators">
+                <div class="trend-indicator trend-up" id="trend-up">↗ Upward</div>
+                <div class="trend-indicator trend-stable" id="trend-stable">→ Stable</div>
+                <div class="trend-indicator trend-down" id="trend-down">↘ Downward</div>
+            </div>
+            
+            <div class="control-group">
+                <button onclick="addDataPoint()">📊 Add Random Data</button>
+                <button onclick="simulateUptrend()">📈 Simulate Uptrend</button>
+                <button onclick="simulateDowntrend()">📉 Simulate Downtrend</button>
+                <button onclick="simulateVolatile()">📊 Volatile Data</button>
+            </div>
+            
+            <div class="control-group">
+                <button onclick="simulateStockPrice()">💰 Stock Price</button>
+                <button onclick="simulateTemperature()">🌡️ Temperature</button>
+                <button onclick="simulateSales()">💼 Sales Data</button>
+                <button onclick="clearData()">🗑️ Clear Data</button>
+            </div>
+            
+            <div class="data-history" id="data-history">
+                Data History: [ ]
+            </div>
+            
+            <div class="status" id="status">
+                Ready. Add data points to see trend analysis.
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { TrendGauge } from '../dist/Gauges/trend/index.js';
+
+        let gauges = {};
+        let dataHistory = [];
+        let animationInterval = null;
+        let currentValue = 50; // Starting value
+
+        // Initialize all gauges
+        function initializeGauges() {
+            const configs = [
+                { id: 'trend-arrow', skin: 'arrow-indicator' },
+                { id: 'trend-bar', skin: 'bar-indicator' }
+            ];
+
+            configs.forEach(config => {
+                const container = document.getElementById(config.id);
+                if (container) {
+                    // Clean up existing gauge
+                    if (gauges[config.id]) {
+                        gauges[config.id].destroy();
+                    }
+                    
+                    gauges[config.id] = new TrendGauge(container, {
+                        skin: config.skin,
+                        autoRender: true,
+                        bufferSize: 10,
+                        upColor: '#00ff00',
+                        downColor: '#ff0000',
+                        maxTrendValue: 2.0,
+                        trendThresholds: {
+                            minimal: 0.001,
+                            low: 0.01,
+                            medium: 0.05,
+                            high: 0.1
+                        }
+                    });
+                    
+                    // Explicitly set the skin to ensure it's applied
+                    gauges[config.id].setSkin(config.skin);
+                }
+            });
+
+            updateStatus('All trend gauges initialized');
+        }
+
+        // Add a single data point
+        function addDataPoint(value = null) {
+            if (value === null) {
+                value = Math.random() * 100; // Random value 0-100
+            }
+            
+            dataHistory.push(value);
+            currentValue = value;
+            
+            // Update all gauges
+            Object.values(gauges).forEach(gauge => {
+                if (gauge) {
+                    gauge.setData({ value: value });
+                }
+            });
+            
+            updateDisplay();
+        }
+
+        // Update display elements
+        function updateDisplay() {
+            document.getElementById('current-value').textContent = currentValue.toFixed(2);
+            
+            // Get trend from gauge (we'll calculate it ourselves for display)
+            if (dataHistory.length > 1) {
+                const trend = calculateTrend();
+                document.getElementById('trend-value').textContent = trend.toFixed(4);
+                
+                // Update trend indicators
+                const indicators = document.querySelectorAll('.trend-indicator');
+                indicators.forEach(ind => ind.style.opacity = '0.3');
+                
+                if (trend > 0.01) {
+                    document.getElementById('trend-up').style.opacity = '1';
+                } else if (trend < -0.01) {
+                    document.getElementById('trend-down').style.opacity = '1';
+                } else {
+                    document.getElementById('trend-stable').style.opacity = '1';
+                }
+            }
+            
+            // Update data history display
+            const recentData = dataHistory.slice(-10).map(v => v.toFixed(1));
+            document.getElementById('data-history').textContent = 
+                `Data History: [ ${recentData.join(', ')} ]`;
+        }
+
+        // Simple linear regression for trend calculation
+        function calculateTrend() {
+            if (dataHistory.length < 2) return 0;
+            
+            const data = dataHistory.slice(-10); // Use last 10 points
+            const n = data.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+            
+            for (let i = 0; i < n; i++) {
+                sumX += i;
+                sumY += data[i];
+                sumXY += i * data[i];
+                sumXX += i * i;
+            }
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            return slope;
+        }
+
+        // Add random data point
+        window.addDataPoint = () => {
+            addDataPoint();
+            updateStatus(`Added random data point: ${currentValue.toFixed(2)}`);
+        };
+
+        // Simulate uptrend
+        window.simulateUptrend = () => {
+            clearInterval(animationInterval);
+            updateStatus('Simulating upward trend...');
+            
+            animationInterval = setInterval(() => {
+                const noise = (Math.random() - 0.5) * 5; // ±2.5 noise
+                const trend = 2; // Upward trend
+                currentValue = Math.max(0, Math.min(100, currentValue + trend + noise));
+                addDataPoint(currentValue);
+            }, 500);
+            
+            // Stop after 20 points
+            setTimeout(() => {
+                clearInterval(animationInterval);
+                updateStatus('Uptrend simulation complete');
+            }, 10000);
+        };
+
+        // Simulate downtrend
+        window.simulateDowntrend = () => {
+            clearInterval(animationInterval);
+            updateStatus('Simulating downward trend...');
+            
+            animationInterval = setInterval(() => {
+                const noise = (Math.random() - 0.5) * 5; // ±2.5 noise
+                const trend = -2; // Downward trend
+                currentValue = Math.max(0, Math.min(100, currentValue + trend + noise));
+                addDataPoint(currentValue);
+            }, 500);
+            
+            // Stop after 20 points
+            setTimeout(() => {
+                clearInterval(animationInterval);
+                updateStatus('Downtrend simulation complete');
+            }, 10000);
+        };
+
+        // Simulate volatile data
+        window.simulateVolatile = () => {
+            clearInterval(animationInterval);
+            updateStatus('Simulating volatile data...');
+            
+            animationInterval = setInterval(() => {
+                const change = (Math.random() - 0.5) * 20; // ±10 change
+                currentValue = Math.max(0, Math.min(100, currentValue + change));
+                addDataPoint(currentValue);
+            }, 300);
+            
+            // Stop after 30 points
+            setTimeout(() => {
+                clearInterval(animationInterval);
+                updateStatus('Volatile data simulation complete');
+            }, 9000);
+        };
+
+        // Simulate stock price
+        window.simulateStockPrice = () => {
+            clearInterval(animationInterval);
+            currentValue = 100; // Start at $100
+            updateStatus('Simulating stock price movements...');
+            
+            animationInterval = setInterval(() => {
+                // Stock-like movement: small changes with occasional larger moves
+                const random = Math.random();
+                let change;
+                
+                if (random < 0.1) {
+                    change = (Math.random() - 0.5) * 10; // 10% chance of large move
+                } else {
+                    change = (Math.random() - 0.5) * 2; // 90% chance of small move
+                }
+                
+                currentValue = Math.max(10, currentValue + change); // Minimum $10
+                addDataPoint(currentValue);
+            }, 400);
+            
+            setTimeout(() => {
+                clearInterval(animationInterval);
+                updateStatus('Stock price simulation complete');
+            }, 12000);
+        };
+
+        // Simulate temperature data
+        window.simulateTemperature = () => {
+            clearInterval(animationInterval);
+            currentValue = 20; // Start at 20°C
+            updateStatus('Simulating temperature over 24 hours...');
+            
+            let hour = 0;
+            animationInterval = setInterval(() => {
+                // Temperature cycle: low at night, high during day
+                const baseTemp = 20 + 10 * Math.sin((hour / 24) * 2 * Math.PI);
+                const noise = (Math.random() - 0.5) * 3;
+                currentValue = baseTemp + noise;
+                
+                addDataPoint(currentValue);
+                hour += 1;
+                
+                if (hour >= 24) {
+                    clearInterval(animationInterval);
+                    updateStatus('24-hour temperature simulation complete');
+                }
+            }, 300);
+        };
+
+        // Simulate sales data
+        window.simulateSales = () => {
+            clearInterval(animationInterval);
+            currentValue = 50; // Start at 50 units
+            updateStatus('Simulating weekly sales data...');
+            
+            let week = 0;
+            animationInterval = setInterval(() => {
+                // Sales pattern: growth with seasonal variation
+                const growth = week * 2; // Linear growth
+                const seasonal = 10 * Math.sin((week / 12) * 2 * Math.PI); // Yearly cycle
+                const noise = (Math.random() - 0.5) * 15;
+                
+                currentValue = Math.max(0, 50 + growth + seasonal + noise);
+                addDataPoint(currentValue);
+                week += 1;
+                
+                if (week >= 20) {
+                    clearInterval(animationInterval);
+                    updateStatus('Sales simulation complete (20 weeks)');
+                }
+            }, 400);
+        };
+
+        // Clear all data
+        window.clearData = () => {
+            clearInterval(animationInterval);
+            dataHistory = [];
+            currentValue = 50;
+            
+            // Reset gauges
+            Object.values(gauges).forEach(gauge => {
+                if (gauge && gauge.setBufferSize) {
+                    gauge.setBufferSize(10); // This should clear the buffer
+                }
+            });
+            
+            updateDisplay();
+            updateStatus('All data cleared');
+        };
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeGauges();
+            updateDisplay();
+            updateStatus('Trend gauge demo loaded. Add data to see trends!');
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(animationInterval);
+            Object.values(gauges).forEach(gauge => {
+                if (gauge && gauge.destroy) {
+                    gauge.destroy();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

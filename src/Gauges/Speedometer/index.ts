@@ -19,6 +19,8 @@ export interface SpeedometerOptions extends GaugeOptions {
 
 export class SpeedometerGauge extends GaugeBase {
   protected options: Required<SpeedometerOptions>;
+  protected gaugeType = "speedometer";
+  protected animatedProperties = ["value"];
 
   constructor(parentElement: HTMLElement, options: SpeedometerOptions = {}) {
     super(parentElement, {
@@ -114,9 +116,13 @@ export class SpeedometerGauge extends GaugeBase {
     ctx.fillText(`${min}`, width / 2 - needleLength, height / 2 + 10);
     ctx.fillText(`${max}`, width / 2 + needleLength, height / 2 + 10);
   }
+
+  protected getDescription(): string {
+    return "A speedometer gauge that displays a numeric value with customizable range and styling";
+  }
 }
 
-SpeedometerGauge.registerSkin("speedometer-default", FuturisticEnhanced);
-SpeedometerGauge.registerSkin("speedometer-minimal", Futuristic);
-SpeedometerGauge.registerSkin("speedometer-bar", FuturisticBar);
-SpeedometerGauge.registerSkin("speedometer-number", FuturisticNumber);
+SpeedometerGauge.registerSkin("speedometer", "default", FuturisticEnhanced);
+SpeedometerGauge.registerSkin("speedometer", "minimal", Futuristic);
+SpeedometerGauge.registerSkin("speedometer", "bar", FuturisticBar);
+SpeedometerGauge.registerSkin("speedometer", "number", FuturisticNumber);
